@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import AgregarProductoModal from '@/components/AgregarProductoModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,9 +32,7 @@ export default async function Inventario() {
             {listaProductos.length} productos en {categorias.length} categorías
           </p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
-          + Agregar producto
-        </button>
+      <AgregarProductoModal />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
