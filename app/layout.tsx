@@ -1,3 +1,5 @@
+import './globals.css'
+
 export const metadata = {
   title: 'Stock Productos 2026',
   description: 'Sistema de stock y punto de venta',
