@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-
+// forzando rebuild
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
