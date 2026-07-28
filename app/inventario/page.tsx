@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
 
+// forzando rebuild
 export const dynamic = 'force-dynamic'
 
 const STOCK_BAJO_LIMITE = 15
