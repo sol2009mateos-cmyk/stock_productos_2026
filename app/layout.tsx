@@ -1,4 +1,5 @@
 import './globals.css'
+import Sidebar from '@/components/Sidebar'
 
 export const metadata = {
   title: 'Stock Productos 2026',
@@ -12,7 +13,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <main className="flex-1 p-8">{children}</main>
+        </div>
+      </body>
     </html>
   )
 }
