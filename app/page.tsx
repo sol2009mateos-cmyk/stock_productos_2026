@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabaseClient'
-import AgregarProductoModal from '@/components/AgregarProductoModal'
 
 export const dynamic = 'force-dynamic'
 
