@@ -1,14 +1,4 @@
 "use client";
-
-import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-
-export default function POS() {
-  const [cart, setCart] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient"; // tu cliente de Supabase
 
