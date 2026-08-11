@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import ReciboModal from '@/components/ReciboModal'
 
 type Producto = {
   id: string
@@ -15,6 +16,9 @@ type Producto = {
 
 type Config = {
   id: number
+  nombre_negocio: string
+  cuit: string | null
+  direccion: string | null
   porcentaje_iva: number
   siguiente_numero_recibo: number
 }
@@ -25,6 +29,16 @@ type ItemCarrito = {
 }
 
 type MetodoPago = 'efectivo' | 'tarjeta' | 'transferencia'
+
+type DatosRecibo = {
+  numeroRecibo: number
+  fecha: Date
+  metodoPago: string
+  items: { nombre: string; cantidad: number; precioUnitario: number; subtotal: number }[]
+  subtotal: number
+  iva: number
+  total: number
+}
 
 function formatearMoneda(valor: number) {
   return valor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 })
@@ -43,7 +57,7 @@ export default function POS({
   const [metodoPago, setMetodoPago] = useState<MetodoPago | null>(null)
   const [procesando, setProcesando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const [ultimoRecibo, setUltimoRecibo] = useState<number | null>(null)
+  const [reciboActivo, setReciboActivo] = useState<DatosRecibo | null>(null)
 
   const porcentajeIva = config?.porcentaje_iva ?? 21
 
@@ -109,7 +123,6 @@ export default function POS({
 
     const numeroRecibo = config.siguiente_numero_recibo
 
-    // 1. Crear la venta
     const { data: ventaCreada, error: errorVenta } = await supabase
       .from('ventas')
       .insert({
@@ -128,7 +141,6 @@ export default function POS({
       return
     }
 
-    // 2. Crear los items de la venta
     const items = carrito.map((i) => ({
       venta_id: ventaCreada.id,
       producto_id: i.producto.id,
@@ -145,7 +157,6 @@ export default function POS({
       return
     }
 
-    // 3. Descontar stock de cada producto
     for (const i of carrito) {
       await supabase
         .from('productos')
@@ -153,13 +164,26 @@ export default function POS({
         .eq('id', i.producto.id)
     }
 
-    // 4. Actualizar el número de recibo siguiente
     await supabase
       .from('config')
       .update({ siguiente_numero_recibo: numeroRecibo + 1 })
       .eq('id', 1)
 
-    setUltimoRecibo(numeroRecibo)
+    setReciboActivo({
+      numeroRecibo,
+      fecha: new Date(),
+      metodoPago,
+      items: carrito.map((i) => ({
+        nombre: i.producto.nombre,
+        cantidad: i.cantidad,
+        precioUnitario: i.producto.precio,
+        subtotal: i.producto.precio * i.cantidad,
+      })),
+      subtotal,
+      iva,
+      total,
+    })
+
     setCarrito([])
     setMetodoPago(null)
     setProcesando(false)
@@ -280,11 +304,6 @@ export default function POS({
           </div>
 
           {errorMsg && <p className="text-red-400 text-sm mb-2">{errorMsg}</p>}
-          {ultimoRecibo && (
-            <p className="text-green-400 text-sm mb-2">
-              ✅ Venta registrada — Recibo N.º {ultimoRecibo}
-            </p>
-          )}
 
           <button
             onClick={confirmarVenta}
@@ -295,6 +314,14 @@ export default function POS({
           </button>
         </div>
       </div>
+
+      {reciboActivo && (
+        <ReciboModal
+          recibo={reciboActivo}
+          config={config}
+          onCerrar={() => setReciboActivo(null)}
+        />
+      )}
     </div>
   )
 }
