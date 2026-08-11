@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
-
 import EditarProductoModal from '@/components/EditarProductoModal'
+
 // forzando rebuild
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +34,7 @@ export default async function Inventario() {
             {listaProductos.length} productos en {categorias.length} categorías
           </p>
         </div>
-      <AgregarProductoModal />
+        <AgregarProductoModal />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -88,6 +88,11 @@ export default async function Inventario() {
                     <EditarProductoModal producto={p} />
                   </td>
                 </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
