@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <div className="flex min-h-screen">
+        <div id="app-root" className="flex min-h-screen">
           <Sidebar />
           <main className="flex-1 p-8">{children}</main>
         </div>
