@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
 
+import EditarProductoModal from '@/components/EditarProductoModal'
 // forzando rebuild
 export const dynamic = 'force-dynamic'
 
@@ -62,6 +63,7 @@ export default async function Inventario() {
               <th className="pb-2">Código de barras</th>
               <th className="pb-2 text-right">Precio</th>
               <th className="pb-2 text-right">Stock</th>
+              <th className="pb-2 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -82,12 +84,10 @@ export default async function Inventario() {
                       {p.stock}
                     </span>
                   </td>
+                  <td className="py-3 text-right">
+                    <EditarProductoModal producto={p} />
+                  </td>
                 </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
     </div>
   )
 }
