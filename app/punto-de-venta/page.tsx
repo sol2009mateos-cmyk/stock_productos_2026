@@ -15,5 +15,16 @@ export default async function PuntoDeVentaPage() {
     .eq('id', 1)
     .single()
 
-  return <POS productosIniciales={productos ?? []} config={config} />
+  const { data: favoritos } = await supabase
+    .from('favoritos')
+    .select('*, productos(id, nombre, precio, stock)')
+    .order('id', { ascending: true })
+
+  return (
+    <POS
+      productosIniciales={productos ?? []}
+      config={config}
+      favoritosIniciales={favoritos ?? []}
+    />
+  )
 }
