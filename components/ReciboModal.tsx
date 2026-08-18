@@ -2,6 +2,7 @@
 
 import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
+import { formatearMoneda } from '@/lib/utils'
 
 type ItemRecibo = {
   nombre: string
@@ -25,10 +26,6 @@ type Config = {
   cuit: string | null
   direccion: string | null
   porcentaje_iva: number
-}
-
-function formatearMoneda(valor: number) {
-  return valor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 })
 }
 
 export default function ReciboModal({
