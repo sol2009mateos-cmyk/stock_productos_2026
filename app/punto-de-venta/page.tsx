@@ -17,7 +17,9 @@ export default async function PuntoDeVentaPage() {
 
   const { data: favoritos } = await supabase
     .from('favoritos')
-    .select('*, productos(id, nombre, precio, stock)')
+    .select(
+      '*, productos(id, nombre, precio, stock), combos(id, nombre, combo_items(producto_id, cantidad, productos(id, nombre, precio, stock)))'
+    )
     .order('id', { ascending: true })
 
   return (
