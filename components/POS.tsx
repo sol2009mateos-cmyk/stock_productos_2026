@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 import ReciboModal from '@/components/ReciboModal'
 import Favoritos, { ItemParaCarrito } from '@/components/Favoritos'
 
+import { formatearMoneda } from '@/lib/utils'
 type Producto = {
   id: string
   nombre: string
@@ -55,10 +56,6 @@ type DatosRecibo = {
   subtotal: number
   iva: number
   total: number
-}
-
-function formatearMoneda(valor: number) {
-  return valor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 })
 }
 
 export default function POS({
