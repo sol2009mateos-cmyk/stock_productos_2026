@@ -12,3 +12,14 @@ body {
     display: none;
   }
 }
+  #recibo-imprimible {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    font-size: 20px !important;
+    padding: 40px !important;
+  }
+
+  #recibo-imprimible p {
+    font-size: 1em !important;
+  }
