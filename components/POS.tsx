@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import ReciboModal from '@/components/ReciboModal'
+import Favoritos from '@/components/Favoritos'
 
 type Producto = {
   id: string
@@ -21,6 +22,12 @@ type Config = {
   direccion: string | null
   porcentaje_iva: number
   siguiente_numero_recibo: number
+}
+
+type Favorito = {
+  id: number
+  producto_id: string | null
+  productos: { id: string; nombre: string; precio: number; stock: number } | null
 }
 
 type ItemCarrito = {
@@ -47,9 +54,11 @@ function formatearMoneda(valor: number) {
 export default function POS({
   productosIniciales,
   config,
+  favoritosIniciales,
 }: {
   productosIniciales: Producto[]
   config: Config | null
+  favoritosIniciales: Favorito[]
 }) {
   const router = useRouter()
   const [busqueda, setBusqueda] = useState('')
@@ -80,6 +89,13 @@ export default function POS({
       if (producto.stock <= 0) return prev
       return [...prev, { producto, cantidad: 1 }]
     })
+  }
+
+  function agregarFavoritoAlCarrito(productoFavorito: { id: string; nombre: string; precio: number; stock: number }) {
+    const productoCompleto = productosIniciales.find((p) => p.id === productoFavorito.id)
+    if (productoCompleto) {
+      agregarAlCarrito(productoCompleto)
+    }
   }
 
   function cambiarCantidad(productoId: string, delta: number) {
@@ -193,6 +209,12 @@ export default function POS({
   return (
     <div>
       <h1 className="text-2xl font-bold text-white mb-6">🛒 Punto de Venta</h1>
+
+      <Favoritos
+        favoritosIniciales={favoritosIniciales}
+        productos={productosIniciales}
+        onAgregarAlCarrito={agregarFavoritoAlCarrito}
+      />
 
       <input
         type="text"
