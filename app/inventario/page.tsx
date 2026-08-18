@@ -1,15 +1,9 @@
 import { supabase } from '@/lib/supabaseClient'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
 import EditarProductoModal from '@/components/EditarProductoModal'
+import { STOCK_BAJO_LIMITE, formatearMoneda } from '@/lib/utils'
 
-// forzando rebuild
 export const dynamic = 'force-dynamic'
-
-const STOCK_BAJO_LIMITE = 15
-
-function formatearMoneda(valor: number) {
-  return valor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })
-}
 
 export default async function Inventario() {
   const { data: productos, error } = await supabase
