@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import ReciboModal from '@/components/ReciboModal'
-import Favoritos from '@/components/Favoritos'
+import Favoritos, { ItemParaCarrito } from '@/components/Favoritos'
 
 type Producto = {
   id: string
@@ -27,7 +27,17 @@ type Config = {
 type Favorito = {
   id: number
   producto_id: string | null
+  combo_id: string | null
   productos: { id: string; nombre: string; precio: number; stock: number } | null
+  combos: {
+    id: string
+    nombre: string
+    combo_items: {
+      producto_id: string
+      cantidad: number
+      productos: { id: string; nombre: string; precio: number; stock: number } | null
+    }[]
+  } | null
 }
 
 type ItemCarrito = {
@@ -76,25 +86,28 @@ export default function POS({
       p.codigo_barras?.toLowerCase().includes(busqueda.toLowerCase())
   )
 
-  function agregarAlCarrito(producto: Producto) {
+  function agregarAlCarrito(producto: Producto, cantidadASumar: number = 1) {
     setErrorMsg('')
     setCarrito((prev) => {
       const existente = prev.find((i) => i.producto.id === producto.id)
       if (existente) {
-        if (existente.cantidad >= producto.stock) return prev
+        const nuevaCantidad = existente.cantidad + cantidadASumar
+        if (nuevaCantidad > producto.stock) return prev
         return prev.map((i) =>
-          i.producto.id === producto.id ? { ...i, cantidad: i.cantidad + 1 } : i
+          i.producto.id === producto.id ? { ...i, cantidad: nuevaCantidad } : i
         )
       }
-      if (producto.stock <= 0) return prev
-      return [...prev, { producto, cantidad: 1 }]
+      if (producto.stock < cantidadASumar) return prev
+      return [...prev, { producto, cantidad: cantidadASumar }]
     })
   }
 
-  function agregarFavoritoAlCarrito(productoFavorito: { id: string; nombre: string; precio: number; stock: number }) {
-    const productoCompleto = productosIniciales.find((p) => p.id === productoFavorito.id)
-    if (productoCompleto) {
-      agregarAlCarrito(productoCompleto)
+  function agregarVariosAlCarrito(items: ItemParaCarrito[]) {
+    for (const item of items) {
+      const productoCompleto = productosIniciales.find((p) => p.id === item.producto.id)
+      if (productoCompleto) {
+        agregarAlCarrito(productoCompleto, item.cantidad)
+      }
     }
   }
 
@@ -213,7 +226,7 @@ export default function POS({
       <Favoritos
         favoritosIniciales={favoritosIniciales}
         productos={productosIniciales}
-        onAgregarAlCarrito={agregarFavoritoAlCarrito}
+        onAgregarVarios={agregarVariosAlCarrito}
       />
 
       <input
