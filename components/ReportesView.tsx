@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { formatearMoneda } from '@/lib/utils'
 
 type VentaItem = {
   cantidad: number
@@ -21,10 +22,6 @@ type Venta = {
 }
 
 type Periodo = 'hoy' | 'semana' | 'mes' | 'todo'
-
-function formatearMoneda(valor: number) {
-  return valor.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 })
-}
 
 function inicioDia(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
