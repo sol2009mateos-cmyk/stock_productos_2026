@@ -29,7 +29,14 @@ function inicioDia(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
 }
 
-export default function ReportesView({ ventas }: { ventas: Venta[] }) {
+type Config = {
+  nombre_negocio: string
+  cuit: string | null
+  direccion: string | null
+  porcentaje_iva: number
+}
+
+export default function ReportesView({ ventas, config }: { ventas: Venta[]; config: Config | null }) {
   const [periodo, setPeriodo] = useState<Periodo>('semana')
   const [ventaParaTicket, setVentaParaTicket] = useState<Venta | null>(null)
 
