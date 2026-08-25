@@ -242,7 +242,7 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
             iva: ventaParaTicket.iva,
             total: ventaParaTicket.total,
           }}
-          config={null}
+                    config={config}
           onCerrar={() => setVentaParaTicket(null)}
         />
       )}
