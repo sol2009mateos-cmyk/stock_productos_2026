@@ -26,9 +26,17 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setGuardando(true)
     setErrorMsg('')
     setGuardadoOk(false)
+
+    const ivaNum = parseFloat(porcentajeIva)
+
+    if (ivaNum < 0) {
+      setErrorMsg('El porcentaje de IVA no puede ser negativo.')
+      return
+    }
+
+    setGuardando(true)
 
     const { error } = await supabase
       .from('config')
@@ -36,10 +44,9 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
         nombre_negocio: nombreNegocio,
         cuit: cuit || null,
         direccion: direccion || null,
-        porcentaje_iva: parseFloat(porcentajeIva),
+        porcentaje_iva: ivaNum,
       })
       .eq('id', 1)
-
     setGuardando(false)
 
     if (error) {
