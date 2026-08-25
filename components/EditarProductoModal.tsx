@@ -27,16 +27,29 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setGuardando(true)
     setErrorMsg('')
+
+    const precioNum = parseFloat(precio)
+    const stockNum = parseInt(stock, 10)
+
+    if (precioNum < 0) {
+      setErrorMsg('El precio no puede ser negativo.')
+      return
+    }
+    if (stockNum < 0) {
+      setErrorMsg('El stock no puede ser negativo.')
+      return
+    }
+
+    setGuardando(true)
 
     const { error } = await supabase
       .from('productos')
       .update({
         nombre,
         categoria,
-        precio: parseFloat(precio),
-        stock: parseInt(stock, 10),
+        precio: precioNum,
+        stock: stockNum,
         codigo_barras: codigoBarras || null,
       })
       .eq('id', producto.id)
