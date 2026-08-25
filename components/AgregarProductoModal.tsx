@@ -25,16 +25,29 @@ export default function AgregarProductoModal() {
     setErrorMsg('')
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setGuardando(true)
     setErrorMsg('')
 
+    const precioNum = parseFloat(precio)
+    const stockNum = parseInt(stock, 10)
+
+    if (precioNum < 0) {
+      setErrorMsg('El precio no puede ser negativo.')
+      return
+    }
+    if (stockNum < 0) {
+      setErrorMsg('El stock no puede ser negativo.')
+      return
+    }
+
+    setGuardando(true)
+
     const { error } = await supabase.from('productos').insert({
-      nombre,
+          nombre,
       categoria,
-      precio: parseFloat(precio),
-      stock: parseInt(stock, 10),
+      precio: precioNum,
+      stock: stockNum,
       codigo_barras: codigoBarras || null,
     })
 
