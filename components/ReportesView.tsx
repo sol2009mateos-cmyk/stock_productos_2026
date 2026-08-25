@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from 'react'
 import { formatearMoneda } from '@/lib/utils'
+import ReciboModal from '@/components/ReciboModal'
 
 type VentaItem = {
   cantidad: number
+  precio_unitario: number
   subtotal: number
   producto_id: string
   productos: { nombre: string } | null
@@ -29,6 +31,7 @@ function inicioDia(d: Date) {
 
 export default function ReportesView({ ventas }: { ventas: Venta[] }) {
   const [periodo, setPeriodo] = useState<Periodo>('semana')
+  const [ventaParaTicket, setVentaParaTicket] = useState<Venta | null>(null)
 
   const ventasFiltradas = useMemo(() => {
     if (periodo === 'todo') return ventas
@@ -186,6 +189,7 @@ export default function ReportesView({ ventas }: { ventas: Venta[] }) {
               <th className="pb-2 text-right">Subtotal</th>
               <th className="pb-2 text-right">IVA</th>
               <th className="pb-2 text-right">Total</th>
+              <th className="pb-2 text-right">Ticket</th>
             </tr>
           </thead>
           <tbody>
@@ -201,11 +205,40 @@ export default function ReportesView({ ventas }: { ventas: Venta[] }) {
                 <td className="py-2 text-right text-gray-300">{formatearMoneda(v.subtotal)}</td>
                 <td className="py-2 text-right text-gray-300">{formatearMoneda(v.iva)}</td>
                 <td className="py-2 text-right text-green-400 font-medium">{formatearMoneda(v.total)}</td>
+                <td className="py-2 text-right">
+                  <button
+                    onClick={() => setVentaParaTicket(v)}
+                    className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                  >
+                    🧾 Ver
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {ventaParaTicket && (
+        <ReciboModal
+          recibo={{
+            numeroRecibo: ventaParaTicket.numero_recibo,
+            fecha: new Date(ventaParaTicket.fecha),
+            metodoPago: ventaParaTicket.metodo_pago,
+            items: (ventaParaTicket.venta_items ?? []).map((i) => ({
+              nombre: i.productos?.nombre ?? 'Producto eliminado',
+              cantidad: i.cantidad,
+              precioUnitario: i.precio_unitario,
+              subtotal: i.subtotal,
+            })),
+            subtotal: ventaParaTicket.subtotal,
+            iva: ventaParaTicket.iva,
+            total: ventaParaTicket.total,
+          }}
+          config={null}
+          onCerrar={() => setVentaParaTicket(null)}
+        />
+      )}
     </div>
   )
 }
