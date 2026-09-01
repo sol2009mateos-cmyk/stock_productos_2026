@@ -15,16 +15,28 @@ type Producto = {
 
 export default function InventarioTabla({ productos }: { productos: Producto[] }) {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todas')
+  const [busqueda, setBusqueda] = useState('')
 
   const categorias = ['Todas', ...Array.from(new Set(productos.map((p) => p.categoria).filter(Boolean) as string[])).sort()]
 
-  const productosFiltrados =
-    categoriaActiva === 'Todas'
-      ? productos
-      : productos.filter((p) => p.categoria === categoriaActiva)
+  const productosFiltrados = productos.filter((p) => {
+    const coincideCategoria = categoriaActiva === 'Todas' || p.categoria === categoriaActiva
+    const coincideBusqueda =
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.codigo_barras?.toLowerCase().includes(busqueda.toLowerCase())
+    return coincideCategoria && coincideBusqueda
+  })
 
-  return (
+   return (
     <div>
+      <input
+        type="text"
+        placeholder="🔍 Buscar producto por nombre o código..."
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        className="w-full bg-[#161922] border border-gray-700 rounded-lg px-4 py-3 mb-4 text-white text-sm focus:outline-none focus:border-blue-500"
+      />
+
       <div className="flex flex-wrap gap-2 mb-4">
         {categorias.map((cat) => (
           <button
