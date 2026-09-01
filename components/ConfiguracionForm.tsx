@@ -11,6 +11,7 @@ type Config = {
   direccion: string | null
   porcentaje_iva: number
   siguiente_numero_recibo: number
+  stock_bajo_limite: number
 }
 
 export default function ConfiguracionForm({ config }: { config: Config | null }) {
@@ -23,16 +24,21 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
   const [cuit, setCuit] = useState(config?.cuit ?? '')
   const [direccion, setDireccion] = useState(config?.direccion ?? '')
   const [porcentajeIva, setPorcentajeIva] = useState(String(config?.porcentaje_iva ?? 21))
-
+  const [stockBajoLimite, setStockBajoLimite] = useState(String(config?.stock_bajo_limite ?? 15))
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErrorMsg('')
     setGuardadoOk(false)
 
-    const ivaNum = parseFloat(porcentajeIva)
+      const ivaNum = parseFloat(porcentajeIva)
+    const stockBajoNum = parseInt(stockBajoLimite, 10)
 
     if (ivaNum < 0) {
       setErrorMsg('El porcentaje de IVA no puede ser negativo.')
+      return
+    }
+    if (stockBajoNum < 0) {
+      setErrorMsg('El límite de stock bajo no puede ser negativo.')
       return
     }
 
@@ -40,11 +46,12 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
 
     const { error } = await supabase
       .from('config')
-      .update({
+            .update({
         nombre_negocio: nombreNegocio,
         cuit: cuit || null,
         direccion: direccion || null,
         porcentaje_iva: ivaNum,
+        stock_bajo_limite: stockBajoNum,
       })
       .eq('id', 1)
     setGuardando(false)
@@ -114,7 +121,16 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
             className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
           />
         </div>
-
+        <div>
+          <label className="text-xs text-gray-400">Límite de stock bajo (unidades)</label>
+          <input
+            required
+            type="number"
+            value={stockBajoLimite}
+            onChange={(e) => setStockBajoLimite(e.target.value)}
+            className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+          />
+        </div>
         <div className="text-xs text-gray-500">
           Próximo número de recibo: <span className="text-gray-300">{config.siguiente_numero_recibo}</span>
         </div>
