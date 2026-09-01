@@ -17,10 +17,19 @@ type Venta = {
   numero_recibo: number
   fecha: string
   metodo_pago: string
+  marca_pago: string | null
+  cuotas: number | null
   subtotal: number
   iva: number
   total: number
   venta_items: VentaItem[]
+}
+
+type Config = {
+  nombre_negocio: string
+  cuit: string | null
+  direccion: string | null
+  porcentaje_iva: number
 }
 
 type Periodo = 'hoy' | 'semana' | 'mes' | 'todo'
@@ -29,11 +38,16 @@ function inicioDia(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
 }
 
-type Config = {
-  nombre_negocio: string
-  cuit: string | null
-  direccion: string | null
-  porcentaje_iva: number
+function etiquetaMetodo(metodo: string) {
+  const nombres: Record<string, string> = {
+    efectivo: 'Efectivo',
+    tarjeta: 'Tarjeta (histórico)',
+    debito: 'Débito',
+    credito: 'Crédito',
+    transferencia: 'Transferencia',
+    billetera_virtual: 'Billetera Virtual',
+  }
+  return nombres[metodo] ?? metodo
 }
 
 export default function ReportesView({ ventas, config }: { ventas: Venta[]; config: Config | null }) {
@@ -62,11 +76,21 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
   const montoTotal = ventasFiltradas.reduce((acc, v) => acc + Number(v.total), 0)
 
   const porMetodo = useMemo(() => {
-    const mapa: Record<string, number> = { efectivo: 0, tarjeta: 0, transferencia: 0 }
+    const mapa: Record<string, number> = {}
     for (const v of ventasFiltradas) {
       mapa[v.metodo_pago] = (mapa[v.metodo_pago] ?? 0) + Number(v.total)
     }
     return mapa
+  }, [ventasFiltradas])
+
+  const porMarca = useMemo(() => {
+    const mapa: Record<string, number> = {}
+    for (const v of ventasFiltradas) {
+      if (v.marca_pago) {
+        mapa[v.marca_pago] = (mapa[v.marca_pago] ?? 0) + Number(v.total)
+      }
+    }
+    return Object.entries(mapa).sort((a, b) => b[1] - a[1])
   }, [ventasFiltradas])
 
   const topProductos = useMemo(() => {
@@ -88,11 +112,13 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
 
   function exportarCSV() {
     const filas = [
-      ['N. Recibo', 'Fecha', 'Metodo de pago', 'Subtotal', 'IVA', 'Total'],
+      ['N. Recibo', 'Fecha', 'Metodo de pago', 'Marca', 'Cuotas', 'Subtotal', 'IVA', 'Total'],
       ...ventasFiltradas.map((v) => [
         v.numero_recibo,
         new Date(v.fecha).toLocaleString('es-AR'),
         v.metodo_pago,
+        v.marca_pago ?? '',
+        v.cuotas ?? '',
         v.subtotal,
         v.iva,
         v.total,
@@ -161,28 +187,46 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
           <div className="flex flex-col gap-3">
             {Object.entries(porMetodo).map(([metodo, monto]) => (
               <div key={metodo} className="flex justify-between items-center">
-                <span className="text-gray-300 text-sm capitalize">{metodo}</span>
+                <span className="text-gray-300 text-sm">{etiquetaMetodo(metodo)}</span>
                 <span className="text-gray-200 font-medium">{formatearMoneda(monto)}</span>
               </div>
             ))}
+            {Object.keys(porMetodo).length === 0 && (
+              <p className="text-gray-500 text-sm">Sin ventas en este período.</p>
+            )}
           </div>
         </div>
 
         <div className="bg-[#161922] rounded-lg p-4">
-          <h2 className="text-white font-semibold mb-4">🏆 Top 5 productos más vendidos</h2>
-          {topProductos.length === 0 ? (
-            <p className="text-gray-500 text-sm">Sin ventas en este período.</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {topProductos.map((p, i) => (
-                <div key={i} className="flex justify-between text-sm border-b border-gray-800 pb-2">
-                  <span className="text-gray-300">{p.nombre}</span>
-                  <span className="text-gray-400">{p.cantidad} u. — {formatearMoneda(p.total)}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <h2 className="text-white font-semibold mb-4">💳 Desglose por marca / proveedor</h2>
+          <div className="flex flex-col gap-3">
+            {porMarca.map(([marca, monto]) => (
+              <div key={marca} className="flex justify-between items-center">
+                <span className="text-gray-300 text-sm">{marca}</span>
+                <span className="text-gray-200 font-medium">{formatearMoneda(monto)}</span>
+              </div>
+            ))}
+            {porMarca.length === 0 && (
+              <p className="text-gray-500 text-sm">Sin ventas con marca registrada en este período.</p>
+            )}
+          </div>
         </div>
+      </div>
+
+      <div className="bg-[#161922] rounded-lg p-4 mb-6">
+        <h2 className="text-white font-semibold mb-4">🏆 Top 5 productos más vendidos</h2>
+        {topProductos.length === 0 ? (
+          <p className="text-gray-500 text-sm">Sin ventas en este período.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {topProductos.map((p, i) => (
+              <div key={i} className="flex justify-between text-sm border-b border-gray-800 pb-2">
+                <span className="text-gray-300">{p.nombre}</span>
+                <span className="text-gray-400">{p.cantidad} u. — {formatearMoneda(p.total)}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="bg-[#161922] rounded-lg p-4">
@@ -208,7 +252,11 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
                     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
                   })}
                 </td>
-                <td className="py-2 text-gray-300 capitalize">{v.metodo_pago}</td>
+                <td className="py-2 text-gray-300">
+                  {etiquetaMetodo(v.metodo_pago)}
+                  {v.marca_pago ? ` · ${v.marca_pago}` : ''}
+                  {v.cuotas && v.cuotas > 1 ? ` (${v.cuotas} cuotas)` : ''}
+                </td>
                 <td className="py-2 text-right text-gray-300">{formatearMoneda(v.subtotal)}</td>
                 <td className="py-2 text-right text-gray-300">{formatearMoneda(v.iva)}</td>
                 <td className="py-2 text-right text-green-400 font-medium">{formatearMoneda(v.total)}</td>
@@ -231,7 +279,10 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
           recibo={{
             numeroRecibo: ventaParaTicket.numero_recibo,
             fecha: new Date(ventaParaTicket.fecha),
-            metodoPago: ventaParaTicket.metodo_pago,
+            metodoPago:
+              etiquetaMetodo(ventaParaTicket.metodo_pago) +
+              (ventaParaTicket.marca_pago ? ` · ${ventaParaTicket.marca_pago}` : '') +
+              (ventaParaTicket.cuotas && ventaParaTicket.cuotas > 1 ? ` (${ventaParaTicket.cuotas} cuotas)` : ''),
             items: (ventaParaTicket.venta_items ?? []).map((i) => ({
               nombre: i.productos?.nombre ?? 'Producto eliminado',
               cantidad: i.cantidad,
@@ -242,7 +293,7 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
             iva: ventaParaTicket.iva,
             total: ventaParaTicket.total,
           }}
-                    config={config}
+          config={config}
           onCerrar={() => setVentaParaTicket(null)}
         />
       )}
