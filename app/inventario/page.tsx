@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabaseClient'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
-import EditarProductoModal from '@/components/EditarProductoModal'
+import InventarioTabla from '@/components/InventarioTabla'
 import { STOCK_BAJO_LIMITE, formatearMoneda } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -48,45 +48,7 @@ export default async function Inventario() {
         </div>
       </div>
 
-      <div className="bg-[#161922] rounded-lg p-4">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-500 border-b border-gray-800">
-              <th className="pb-2">Nombre</th>
-              <th className="pb-2">Categoría</th>
-              <th className="pb-2">Código de barras</th>
-              <th className="pb-2 text-right">Precio</th>
-              <th className="pb-2 text-right">Stock</th>
-              <th className="pb-2 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listaProductos.map((p) => {
-              const bajo = p.stock < STOCK_BAJO_LIMITE
-              return (
-                <tr key={p.id} className="border-b border-gray-800">
-                  <td className="py-3 text-gray-200 font-medium">{p.nombre}</td>
-                  <td className="py-3 text-gray-400">{p.categoria}</td>
-                  <td className="py-3 text-gray-500">{p.codigo_barras}</td>
-                  <td className="py-3 text-right text-gray-200">{formatearMoneda(p.precio)}</td>
-                  <td className="py-3 text-right">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        bajo ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300'
-                      }`}
-                    >
-                      {p.stock}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right">
-                    <EditarProductoModal producto={p} />
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <InventarioTabla productos={listaProductos} />
     </div>
   )
 }
