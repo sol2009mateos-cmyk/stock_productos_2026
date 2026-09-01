@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import ReciboModal from '@/components/ReciboModal'
 import Favoritos, { ItemParaCarrito } from '@/components/Favoritos'
-
+import ListaProductosPOS from '@/components/ListaProductosPOS'
 import { formatearMoneda } from '@/lib/utils'
+
 type Producto = {
   id: string
   nombre: string
@@ -76,12 +77,6 @@ export default function POS({
   const [reciboActivo, setReciboActivo] = useState<DatosRecibo | null>(null)
 
   const porcentajeIva = config?.porcentaje_iva ?? 21
-
-  const productosFiltrados = productosIniciales.filter(
-    (p) =>
-      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      p.codigo_barras?.toLowerCase().includes(busqueda.toLowerCase())
-  )
 
   function agregarAlCarrito(producto: Producto, cantidadASumar: number = 1) {
     setErrorMsg('')
@@ -237,27 +232,11 @@ export default function POS({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#161922] rounded-lg p-4">
           <h2 className="text-white font-semibold mb-4">Productos</h2>
-          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-            {productosFiltrados.map((p) => (
-              <div
-                key={p.id}
-                className="flex justify-between items-center bg-[#0f1117] rounded-lg p-3"
-              >
-                <div>
-                  <p className="text-gray-200 font-medium text-sm">{p.nombre}</p>
-                  <p className="text-blue-400 text-sm">{formatearMoneda(p.precio)}</p>
-                  <p className="text-gray-500 text-xs">Stock: {p.stock}</p>
-                </div>
-                <button
-                  onClick={() => agregarAlCarrito(p)}
-                  disabled={p.stock <= 0}
-                  className="bg-green-700 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-3 py-2 rounded-lg"
-                >
-                  Agregar
-                </button>
-              </div>
-            ))}
-          </div>
+          <ListaProductosPOS
+            productos={productosIniciales}
+            busqueda={busqueda}
+            onAgregar={agregarAlCarrito}
+          />
         </div>
 
         <div className="bg-[#161922] rounded-lg p-4 flex flex-col">
