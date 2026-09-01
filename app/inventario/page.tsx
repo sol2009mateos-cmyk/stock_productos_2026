@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
 import InventarioTabla from '@/components/InventarioTabla'
-import { STOCK_BAJO_LIMITE, formatearMoneda } from '@/lib/utils'
+import { formatearMoneda } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,10 +11,17 @@ export default async function Inventario() {
     .select('*')
     .order('nombre', { ascending: true })
 
+  const { data: config } = await supabase
+    .from('config')
+    .select('stock_bajo_limite')
+    .eq('id', 1)
+    .single()
+
   if (error) {
     return <div className="text-red-400">Error al traer productos: {error.message}</div>
   }
 
+  const stockBajoLimite = config?.stock_bajo_limite ?? 15
   const listaProductos = productos ?? []
   const categorias = Array.from(new Set(listaProductos.map((p) => p.categoria).filter(Boolean)))
   const valorTotal = listaProductos.reduce((acc, p) => acc + p.precio * p.stock, 0)
@@ -43,12 +50,12 @@ export default async function Inventario() {
         <div className="bg-[#161922] border-t-4 border-red-500 rounded-lg p-4">
           <p className="text-gray-400 text-sm">⚠️ Stock Bajo</p>
           <p className="text-3xl font-bold text-red-400 mt-1">
-            {listaProductos.filter((p) => p.stock < STOCK_BAJO_LIMITE).length}
+            {listaProductos.filter((p) => p.stock < stockBajoLimite).length}
           </p>
         </div>
       </div>
 
-      <InventarioTabla productos={listaProductos} />
+      <InventarioTabla productos={listaProductos} stockBajoLimite={stockBajoLimite} />
     </div>
   )
 }
