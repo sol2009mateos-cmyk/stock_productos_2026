@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import EditarProductoModal from '@/components/EditarProductoModal'
-import { STOCK_BAJO_LIMITE, formatearMoneda } from '@/lib/utils'
+import { formatearMoneda } from '@/lib/utils'
 
 type Producto = {
   id: string
@@ -13,7 +13,13 @@ type Producto = {
   codigo_barras: string | null
 }
 
-export default function InventarioTabla({ productos }: { productos: Producto[] }) {
+export default function InventarioTabla({
+  productos,
+  stockBajoLimite,
+}: {
+  productos: Producto[]
+  stockBajoLimite: number
+}) {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todas')
   const [busqueda, setBusqueda] = useState('')
 
@@ -72,7 +78,7 @@ export default function InventarioTabla({ productos }: { productos: Producto[] }
           </thead>
           <tbody>
             {productosFiltrados.map((p) => {
-              const bajo = p.stock < STOCK_BAJO_LIMITE
+                          const bajo = p.stock < stockBajoLimite
               return (
                 <tr key={p.id} className="border-b border-gray-800">
                   <td className="py-3 text-gray-200 font-medium">{p.nombre}</td>
