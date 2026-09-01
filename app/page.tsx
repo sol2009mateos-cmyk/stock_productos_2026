@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-import { STOCK_BAJO_LIMITE, formatearMoneda } from '@/lib/utils'
+import { formatearMoneda } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +13,12 @@ export default async function Dashboard() {
     .select('*, venta_items(cantidad)')
     .order('fecha', { ascending: false })
 
+  const { data: config } = await supabase
+    .from('config')
+    .select('stock_bajo_limite')
+    .eq('id', 1)
+    .single()
+
   if (errorProductos || errorVentas) {
     return (
       <div className="text-red-400">
@@ -21,12 +27,13 @@ export default async function Dashboard() {
     )
   }
 
+  const stockBajoLimite = config?.stock_bajo_limite ?? 15
   const listaProductos = productos ?? []
   const listaVentas = ventas ?? []
 
   const totalProductos = listaProductos.length
   const valorInventario = listaProductos.reduce((acc, p) => acc + p.precio * p.stock, 0)
-  const productosStockBajo = listaProductos.filter((p) => p.stock < STOCK_BAJO_LIMITE)
+  const productosStockBajo = listaProductos.filter((p) => p.stock < stockBajoLimite)
 
   const hoy = new Date()
   const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
