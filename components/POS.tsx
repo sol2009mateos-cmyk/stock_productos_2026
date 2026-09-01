@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 import ReciboModal from '@/components/ReciboModal'
 import Favoritos, { ItemParaCarrito } from '@/components/Favoritos'
 import ListaProductosPOS from '@/components/ListaProductosPOS'
+import SelectorPago, { DatosPago } from '@/components/SelectorPago'
 import { formatearMoneda } from '@/lib/utils'
 
 type Producto = {
@@ -47,8 +48,6 @@ type ItemCarrito = {
   cantidad: number
 }
 
-type MetodoPago = 'efectivo' | 'tarjeta' | 'transferencia'
-
 type DatosRecibo = {
   numeroRecibo: number
   fecha: Date
@@ -57,6 +56,18 @@ type DatosRecibo = {
   subtotal: number
   iva: number
   total: number
+}
+
+function etiquetaMetodoPago(datos: DatosPago) {
+  if (datos.metodoPago === 'efectivo') return 'Efectivo'
+  if (datos.metodoPago === 'transferencia') return 'Transferencia'
+  if (datos.metodoPago === 'debito') return `Débito (${datos.marcaPago})`
+  if (datos.metodoPago === 'billetera_virtual') return datos.marcaPago ?? 'Billetera Virtual'
+  if (datos.metodoPago === 'credito') {
+    const cuotasTexto = datos.cuotas === 1 ? '1 pago' : `${datos.cuotas} cuotas`
+    return `Crédito ${datos.marcaPago} (${cuotasTexto})`
+  }
+  return datos.metodoPago
 }
 
 export default function POS({
@@ -71,7 +82,7 @@ export default function POS({
   const router = useRouter()
   const [busqueda, setBusqueda] = useState('')
   const [carrito, setCarrito] = useState<ItemCarrito[]>([])
-  const [metodoPago, setMetodoPago] = useState<MetodoPago | null>(null)
+  const [datosPago, setDatosPago] = useState<DatosPago | null>(null)
   const [procesando, setProcesando] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [reciboActivo, setReciboActivo] = useState<DatosRecibo | null>(null)
@@ -131,8 +142,8 @@ export default function POS({
       setErrorMsg('El carrito está vacío.')
       return
     }
-    if (!metodoPago) {
-      setErrorMsg('Elegí un método de pago.')
+    if (!datosPago) {
+      setErrorMsg('Elegí un método de pago completo.')
       return
     }
     if (!config) {
@@ -148,7 +159,9 @@ export default function POS({
       .from('ventas')
       .insert({
         numero_recibo: numeroRecibo,
-        metodo_pago: metodoPago,
+        metodo_pago: datosPago.metodoPago,
+        marca_pago: datosPago.marcaPago,
+        cuotas: datosPago.cuotas,
         subtotal,
         iva,
         total,
@@ -193,7 +206,7 @@ export default function POS({
     setReciboActivo({
       numeroRecibo,
       fecha: new Date(),
-      metodoPago,
+      metodoPago: etiquetaMetodoPago(datosPago),
       items: carrito.map((i) => ({
         nombre: i.producto.nombre,
         cantidad: i.cantidad,
@@ -206,7 +219,7 @@ export default function POS({
     })
 
     setCarrito([])
-    setMetodoPago(null)
+    setDatosPago(null)
     setProcesando(false)
     router.refresh()
   }
@@ -295,24 +308,7 @@ export default function POS({
             </div>
           </div>
 
-          <div className="mb-4">
-            <p className="text-gray-400 text-xs mb-2">Método de pago</p>
-            <div className="grid grid-cols-3 gap-2">
-              {(['efectivo', 'tarjeta', 'transferencia'] as MetodoPago[]).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMetodoPago(m)}
-                  className={`text-xs font-medium py-2 rounded-lg capitalize ${
-                    metodoPago === m
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-[#0f1117] text-gray-400 hover:bg-gray-800'
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
+          <SelectorPago onCambiar={setDatosPago} />
 
           {errorMsg && <p className="text-red-400 text-sm mb-2">{errorMsg}</p>}
 
