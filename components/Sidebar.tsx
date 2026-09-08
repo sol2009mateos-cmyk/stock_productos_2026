@@ -9,6 +9,7 @@ const links = [
   { href: '/punto-de-venta', label: 'Punto de Venta', icon: '🛒' },
   { href: '/reportes', label: 'Reportes', icon: '📈' },
   { href: '/historial', label: 'Historial de Stock', icon: '📜' },
+    { href: '/empleados', label: 'Empleados', icon: '👥' },
   { href: '/configuracion', label: 'Configuración', icon: '⚙️' },
 ]
 
