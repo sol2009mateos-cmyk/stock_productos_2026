@@ -103,7 +103,7 @@ export default function EmpleadosTabla({ empleados }: { empleados: Empleado[] })
                   <td className="py-3 text-gray-400">
                     {new Date(e.fecha_alta).toLocaleDateString('es-AR')}
                   </td>
-                                    <td className="py-3 text-right">
+                  <td className="py-3 text-right">
                     <Link href={`/empleados/${e.id}`} className="text-blue-400 hover:text-blue-300 text-xs font-medium">
                       Ver ficha →
                     </Link>
