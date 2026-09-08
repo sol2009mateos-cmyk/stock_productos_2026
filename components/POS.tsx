@@ -191,11 +191,22 @@ export default function POS({
       return
     }
 
-    for (const i of carrito) {
+        for (const i of carrito) {
+      const stockNuevo = i.producto.stock - i.cantidad
+
       await supabase
         .from('productos')
-        .update({ stock: i.producto.stock - i.cantidad })
+        .update({ stock: stockNuevo })
         .eq('id', i.producto.id)
+
+      await supabase.from('movimientos_stock').insert({
+        producto_id: i.producto.id,
+        cambio: -i.cantidad,
+        stock_anterior: i.producto.stock,
+        stock_nuevo: stockNuevo,
+        motivo: 'venta',
+        venta_id: ventaCreada.id,
+      })
     }
 
     await supabase
