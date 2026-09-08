@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import EditarEmpleadoModal from '@/components/EditarEmpleadoModal'
 
 type Empleado = {
   id: string
@@ -79,6 +80,7 @@ export default function EmpleadosTabla({ empleados }: { empleados: Empleado[] })
               <th className="pb-2">Estado</th>
               <th className="pb-2">Fecha de alta</th>
               <th className="pb-2 text-right">Ver</th>
+              <th className="pb-2 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -101,10 +103,13 @@ export default function EmpleadosTabla({ empleados }: { empleados: Empleado[] })
                   <td className="py-3 text-gray-400">
                     {new Date(e.fecha_alta).toLocaleDateString('es-AR')}
                   </td>
-                  <td className="py-3 text-right">
+                                    <td className="py-3 text-right">
                     <Link href={`/empleados/${e.id}`} className="text-blue-400 hover:text-blue-300 text-xs font-medium">
                       Ver ficha →
                     </Link>
+                  </td>
+                  <td className="py-3 text-right">
+                    <EditarEmpleadoModal empleado={e} />
                   </td>
                 </tr>
               )
