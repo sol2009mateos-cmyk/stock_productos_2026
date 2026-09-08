@@ -11,8 +11,11 @@ type Empleado = {
   cargo: string | null
   area: string | null
   foto_url: string | null
+  email: string | null
+  telefono: string | null
   fecha_alta: string
   fecha_baja: string | null
+  notas: string | null
 }
 
 export default function EmpleadosTabla({ empleados }: { empleados: Empleado[] }) {
