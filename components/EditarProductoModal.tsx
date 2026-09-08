@@ -43,6 +43,8 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
 
     setGuardando(true)
 
+        const stockAnterior = producto.stock
+
     const { error } = await supabase
       .from('productos')
       .update({
@@ -53,6 +55,16 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
         codigo_barras: codigoBarras || null,
       })
       .eq('id', producto.id)
+
+    if (!error && stockNum !== stockAnterior) {
+      await supabase.from('movimientos_stock').insert({
+        producto_id: producto.id,
+        cambio: stockNum - stockAnterior,
+        stock_anterior: stockAnterior,
+        stock_nuevo: stockNum,
+        motivo: 'ajuste_manual',
+      })
+    }
 
     setGuardando(false)
 
