@@ -35,11 +35,18 @@ export default async function FichaEmpleadoPage({ params }: { params: { id: stri
     new Set((categoriasProductos ?? []).map((p) => p.categoria).filter(Boolean) as string[])
   ).sort()
 
+  const { data: asistencias } = await supabase
+    .from('asistencias')
+    .select('*')
+    .eq('empleado_id', params.id)
+    .order('fecha', { ascending: false })
+
   return (
     <FichaEmpleado
       empleado={empleado}
       responsabilidades={responsabilidades ?? []}
       todasLasCategorias={todasLasCategorias}
+      asistencias={asistencias ?? []}
     />
   )
 }
