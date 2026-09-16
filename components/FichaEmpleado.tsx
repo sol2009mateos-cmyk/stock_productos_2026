@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import EditarEmpleadoModal from '@/components/EditarEmpleadoModal'
 
+import AsistenciasEmpleado from '@/components/AsistenciasEmpleado'
+
 type Empleado = {
   id: string
   nombre: string
@@ -25,14 +27,23 @@ type Responsabilidad = {
   categoria: string
 }
 
+type Asistencia = {
+  id: string
+  fecha: string
+  hora_entrada: string | null
+  hora_salida: string | null
+}
+
 export default function FichaEmpleado({
   empleado,
   responsabilidades,
   todasLasCategorias,
+  asistencias,
 }: {
   empleado: Empleado
   responsabilidades: Responsabilidad[]
   todasLasCategorias: string[]
+  asistencias: Asistencia[]
 }) {
   const router = useRouter()
   const [guardando, setGuardando] = useState(false)
@@ -160,6 +171,8 @@ export default function FichaEmpleado({
           </div>
         )}
       </div>
+
+      <AsistenciasEmpleado empleadoId={empleado.id} asistencias={asistencias} />
     </div>
   )
 }
