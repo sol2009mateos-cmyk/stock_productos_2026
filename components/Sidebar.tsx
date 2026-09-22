@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 const links = [
   { href: '/', label: 'Dashboard', icon: '📊' },
@@ -9,12 +11,28 @@ const links = [
   { href: '/punto-de-venta', label: 'Punto de Venta', icon: '🛒' },
   { href: '/reportes', label: 'Reportes', icon: '📈' },
   { href: '/historial', label: 'Historial de Stock', icon: '📜' },
-    { href: '/empleados', label: 'Empleados', icon: '👥' },
+  { href: '/empleados', label: 'Empleados', icon: '👥' },
   { href: '/configuracion', label: 'Configuración', icon: '⚙️' },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [email, setEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? null)
+    })
+  }, [])
+
+  async function cerrarSesion() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <aside className="w-64 min-h-screen bg-[#161922] border-r border-gray-800 flex flex-col p-4">
@@ -26,7 +44,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-1 flex-1">
         {links.map((link) => {
           const active = pathname === link.href
           return (
@@ -45,6 +63,20 @@ export default function Sidebar() {
           )
         })}
       </nav>
+
+      <div className="border-t border-gray-800 pt-3 mt-3">
+        {email && (
+          <p className="text-gray-500 text-xs px-2 mb-2 truncate" title={email}>
+            {email}
+          </p>
+        )}
+        <button
+          onClick={cerrarSesion}
+          className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-red-400"
+        >
+          🚪 Cerrar sesión
+        </button>
+      </div>
     </aside>
   )
 }
