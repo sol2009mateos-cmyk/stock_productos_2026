@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/server'
 import HistorialStockView from '@/components/HistorialStockView'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HistorialPage() {
+  const supabase = createClient()
   const { data: movimientos } = await supabase
     .from('movimientos_stock')
     .select('*, productos(nombre)')
