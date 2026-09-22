@@ -31,8 +31,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f1117]">
-      <div className="bg-[#161922] rounded-lg p-8 w-full max-w-sm">
+       <div className="min-h-screen flex items-center justify-center bg-[#0f1117] relative overflow-hidden">
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-3xl" />
+           <div className="bg-[#161922] rounded-lg p-8 w-full max-w-sm relative z-10 border border-gray-800 shadow-2xl">
         <div className="text-center mb-6">
           <span className="text-3xl">🏪</span>
           <h1 className="text-white text-xl font-bold mt-2">Stock Productos 2026</h1>
