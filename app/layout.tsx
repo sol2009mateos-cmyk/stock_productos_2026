@@ -1,5 +1,5 @@
 import './globals.css'
-import Sidebar from '@/components/Sidebar'
+import AppShell from '@/components/AppShell'
 
 export const metadata = {
   title: 'Stock Productos 2026',
@@ -14,10 +14,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <div id="app-root" className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 p-8">{children}</main>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   )
