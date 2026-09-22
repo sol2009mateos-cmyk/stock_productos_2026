@@ -1,10 +1,11 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import FichaEmpleado from '@/components/FichaEmpleado'
 
 export const dynamic = 'force-dynamic'
 
 export default async function FichaEmpleadoPage({ params }: { params: { id: string } }) {
+  const supabase = createClient()
   const { data: empleado, error } = await supabase
     .from('empleados')
     .select('*')
