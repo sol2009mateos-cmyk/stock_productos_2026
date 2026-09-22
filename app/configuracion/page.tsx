@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/server'
 import ConfiguracionForm from '@/components/ConfiguracionForm'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ConfiguracionPage() {
+  const supabase = createClient()
   const { data: config } = await supabase
     .from('config')
     .select('*')
