@@ -35,7 +35,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-[#161922] border-r border-gray-800 flex flex-col p-4">
+       <aside className="w-64 h-screen sticky top-0 bg-[#161922] border-r border-gray-800 flex flex-col p-4 overflow-y-auto">
       <div className="flex items-center gap-2 mb-8 px-2">
         <span className="text-2xl">🏪</span>
         <div>
