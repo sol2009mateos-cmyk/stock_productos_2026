@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/server'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
 import InventarioTabla from '@/components/InventarioTabla'
 import { formatearMoneda } from '@/lib/utils'
@@ -6,6 +6,7 @@ import { formatearMoneda } from '@/lib/utils'
 export const dynamic = 'force-dynamic'
 
 export default async function Inventario() {
+  const supabase = createClient()
   const { data: productos, error } = await supabase
     .from('productos')
     .select('*')
