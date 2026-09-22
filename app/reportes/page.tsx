@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/server'
 import ReportesView from '@/components/ReportesView'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ReportesPage() {
+  const supabase = createClient()
   const { data: ventas } = await supabase
     .from('ventas')
     .select('*, venta_items(cantidad, precio_unitario, subtotal, producto_id, productos(nombre))')
