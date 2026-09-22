@@ -1,10 +1,11 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/server'
 import AgregarEmpleadoModal from '@/components/AgregarEmpleadoModal'
 import EmpleadosTabla from '@/components/EmpleadosTabla'
 
 export const dynamic = 'force-dynamic'
 
 export default async function EmpleadosPage() {
+  const supabase = createClient()
   const { data: empleados, error } = await supabase
     .from('empleados')
     .select('*')
