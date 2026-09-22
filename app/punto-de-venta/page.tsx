@@ -1,9 +1,10 @@
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/server'
 import POS from '@/components/POS'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PuntoDeVentaPage() {
+  const supabase = createClient()
   const { data: productos } = await supabase
     .from('productos')
     .select('*')
