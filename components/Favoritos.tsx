@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 
 type Producto = {
   id: string
@@ -70,6 +70,7 @@ export default function Favoritos({
 
   async function asignarProductoIndividual(slot: number, productoId: string) {
     setGuardando(true)
+    const supabase = createClient()
     await supabase
       .from('favoritos')
       .upsert({ id: slot, producto_id: productoId, combo_id: null })
@@ -104,6 +105,7 @@ export default function Favoritos({
     if (!nombreCombo.trim() || itemsCombo.length === 0) return
     setGuardando(true)
 
+    const supabase = createClient()
     const { data: comboCreado, error: errorCombo } = await supabase
       .from('combos')
       .insert({ nombre: nombreCombo })
@@ -134,6 +136,7 @@ export default function Favoritos({
 
   async function quitarFavorito(slot: number) {
     setGuardando(true)
+    const supabase = createClient()
     await supabase.from('favoritos').delete().eq('id', slot)
     setGuardando(false)
     cerrarEdicion()
