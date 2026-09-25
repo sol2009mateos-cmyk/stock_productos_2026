@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 
 type Empleado = {
   id: string
@@ -38,6 +38,7 @@ export default function EditarEmpleadoModal({ empleado }: { empleado: Empleado }
     setGuardando(true)
     setErrorMsg('')
 
+    const supabase = createClient()
     const { error } = await supabase
       .from('empleados')
       .update({
@@ -68,6 +69,7 @@ export default function EditarEmpleadoModal({ empleado }: { empleado: Empleado }
     if (!confirm(`¿Seguro que querés eliminar a ${empleado.nombre} ${empleado.apellido}? Esta acción no se puede deshacer.`)) return
 
     setGuardando(true)
+    const supabase = createClient()
     const { error } = await supabase.from('empleados').delete().eq('id', empleado.id)
     setGuardando(false)
 
