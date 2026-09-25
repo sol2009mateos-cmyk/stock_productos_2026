@@ -32,6 +32,8 @@ type Config = {
   porcentaje_iva: number
 }
 
+type Rol = 'admin' | 'supervisor' | 'cajero' | null
+
 type Periodo = 'hoy' | 'semana' | 'mes' | 'todo'
 
 function inicioDia(d: Date) {
@@ -50,10 +52,106 @@ function etiquetaMetodo(metodo: string) {
   return nombres[metodo] ?? metodo
 }
 
-export default function ReportesView({ ventas, config }: { ventas: Venta[]; config: Config | null }) {
+function armarDatosTicket(venta: Venta) {
+  return {
+    numeroRecibo: venta.numero_recibo,
+    fecha: new Date(venta.fecha),
+    metodoPago:
+      etiquetaMetodo(venta.metodo_pago) +
+      (venta.marca_pago ? ` · ${venta.marca_pago}` : '') +
+      (venta.cuotas && venta.cuotas > 1 ? ` (${venta.cuotas} cuotas)` : ''),
+    items: (venta.venta_items ?? []).map((i) => ({
+      nombre: i.productos?.nombre ?? 'Producto eliminado',
+      cantidad: i.cantidad,
+      precioUnitario: i.precio_unitario,
+      subtotal: i.subtotal,
+    })),
+    subtotal: venta.subtotal,
+    iva: venta.iva,
+    total: venta.total,
+  }
+}
+
+export default function ReportesView({
+  ventas,
+  config,
+  rol,
+}: {
+  ventas: Venta[]
+  config: Config | null
+  rol: Rol
+}) {
+  const [busqueda, setBusqueda] = useState('')
   const [periodo, setPeriodo] = useState<Periodo>('semana')
   const [ventaParaTicket, setVentaParaTicket] = useState<Venta | null>(null)
 
+  const esCajero = rol === 'cajero'
+
+  // --- Vista reducida para el cajero: solo buscar y ver tickets ---
+  if (esCajero) {
+    const ventasFiltradas = ventas.filter((v) => String(v.numero_recibo).includes(busqueda))
+
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-white mb-6">🧾 Tickets</h1>
+
+        <input
+          type="text"
+          placeholder="🔍 Buscar por número de recibo..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full bg-[#161922] border border-gray-700 rounded-lg px-4 py-3 mb-6 text-white text-sm focus:outline-none focus:border-blue-500"
+        />
+
+        <div className="bg-[#161922] rounded-lg p-4">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-gray-500 border-b border-gray-800">
+                <th className="pb-2">N.º Recibo</th>
+                <th className="pb-2">Fecha</th>
+                <th className="pb-2">Método</th>
+                <th className="pb-2 text-right">Ticket</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ventasFiltradas.slice(0, 50).map((v) => (
+                <tr key={v.id} className="border-b border-gray-800">
+                  <td className="py-2 text-gray-300">{v.numero_recibo}</td>
+                  <td className="py-2 text-gray-300">
+                    {new Date(v.fecha).toLocaleString('es-AR', {
+                      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                    })}
+                  </td>
+                  <td className="py-2 text-gray-300">{etiquetaMetodo(v.metodo_pago)}</td>
+                  <td className="py-2 text-right">
+                    <button
+                      onClick={() => setVentaParaTicket(v)}
+                      className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                    >
+                      🧾 Ver
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {ventasFiltradas.length === 0 && (
+            <p className="text-gray-500 text-sm text-center py-4">No se encontraron tickets.</p>
+          )}
+        </div>
+
+        {ventaParaTicket && (
+          <ReciboModal
+            recibo={armarDatosTicket(ventaParaTicket)}
+            config={config}
+            onCerrar={() => setVentaParaTicket(null)}
+          />
+        )}
+      </div>
+    )
+  }
+
+  // --- Vista completa para admin y supervisor ---
   const ventasFiltradas = useMemo(() => {
     if (periodo === 'todo') return ventas
 
@@ -276,23 +374,7 @@ export default function ReportesView({ ventas, config }: { ventas: Venta[]; conf
 
       {ventaParaTicket && (
         <ReciboModal
-          recibo={{
-            numeroRecibo: ventaParaTicket.numero_recibo,
-            fecha: new Date(ventaParaTicket.fecha),
-            metodoPago:
-              etiquetaMetodo(ventaParaTicket.metodo_pago) +
-              (ventaParaTicket.marca_pago ? ` · ${ventaParaTicket.marca_pago}` : '') +
-              (ventaParaTicket.cuotas && ventaParaTicket.cuotas > 1 ? ` (${ventaParaTicket.cuotas} cuotas)` : ''),
-            items: (ventaParaTicket.venta_items ?? []).map((i) => ({
-              nombre: i.productos?.nombre ?? 'Producto eliminado',
-              cantidad: i.cantidad,
-              precioUnitario: i.precio_unitario,
-              subtotal: i.subtotal,
-            })),
-            subtotal: ventaParaTicket.subtotal,
-            iva: ventaParaTicket.iva,
-            total: ventaParaTicket.total,
-          }}
+          recibo={armarDatosTicket(ventaParaTicket)}
           config={config}
           onCerrar={() => setVentaParaTicket(null)}
         />
