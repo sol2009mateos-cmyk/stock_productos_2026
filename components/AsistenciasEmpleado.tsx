@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 
 type Asistencia = {
   id: string
@@ -36,6 +36,7 @@ export default function AsistenciasEmpleado({
 
   async function marcarEntrada() {
     setProcesando(true)
+    const supabase = createClient()
     await supabase.from('asistencias').insert({
       empleado_id: empleadoId,
       fecha: fechaHoy(),
@@ -48,6 +49,7 @@ export default function AsistenciasEmpleado({
   async function marcarSalida() {
     if (!asistenciaHoy) return
     setProcesando(true)
+    const supabase = createClient()
     await supabase
       .from('asistencias')
       .update({ hora_salida: horaActual() })
