@@ -41,8 +41,6 @@ export default function AgregarProductoModal() {
       return
     }
 
-    setGuardando(true)
-
         setGuardando(true)
 
     const supabase = createClient()
