@@ -5,25 +5,36 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const links = [
-  { href: '/', label: 'Dashboard', icon: '📊' },
-  { href: '/inventario', label: 'Inventario', icon: '📦' },
-  { href: '/punto-de-venta', label: 'Punto de Venta', icon: '🛒' },
-  { href: '/reportes', label: 'Reportes', icon: '📈' },
-  { href: '/historial', label: 'Historial de Stock', icon: '📜' },
-  { href: '/empleados', label: 'Empleados', icon: '👥' },
-  { href: '/configuracion', label: 'Configuración', icon: '⚙️' },
+type Rol = 'admin' | 'supervisor' | 'cajero'
+
+const links: { href: string; label: string; icon: string; roles: Rol[] }[] = [
+  { href: '/', label: 'Dashboard', icon: '📊', roles: ['admin', 'supervisor', 'cajero'] },
+  { href: '/inventario', label: 'Inventario', icon: '📦', roles: ['admin', 'supervisor', 'cajero'] },
+  { href: '/punto-de-venta', label: 'Punto de Venta', icon: '🛒', roles: ['admin', 'supervisor', 'cajero'] },
+  { href: '/reportes', label: 'Reportes', icon: '📈', roles: ['admin', 'supervisor', 'cajero'] },
+  { href: '/historial', label: 'Historial de Stock', icon: '📜', roles: ['admin', 'supervisor'] },
+  { href: '/empleados', label: 'Empleados', icon: '👥', roles: ['admin', 'supervisor'] },
+  { href: '/configuracion', label: 'Configuración', icon: '⚙️', roles: ['admin'] },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const [email, setEmail] = useState<string | null>(null)
+  const [rol, setRol] = useState<Rol | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       setEmail(data.user?.email ?? null)
+      if (data.user) {
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('rol')
+          .eq('id', data.user.id)
+          .single()
+        setRol((perfil?.rol as Rol) ?? null)
+      }
     })
   }, [])
 
@@ -34,8 +45,10 @@ export default function Sidebar() {
     router.refresh()
   }
 
+  const linksVisibles = rol ? links.filter((l) => l.roles.includes(rol)) : []
+
   return (
-       <aside className="w-64 h-screen sticky top-0 bg-[#161922] border-r border-gray-800 flex flex-col p-4 overflow-y-auto">
+    <aside className="w-64 h-screen sticky top-0 bg-[#161922] border-r border-gray-800 flex flex-col p-4 overflow-y-auto">
       <div className="flex items-center gap-2 mb-8 px-2">
         <span className="text-2xl">🏪</span>
         <div>
@@ -45,7 +58,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1 flex-1">
-        {links.map((link) => {
+        {linksVisibles.map((link) => {
           const active = pathname === link.href
           return (
             <Link
@@ -66,9 +79,12 @@ export default function Sidebar() {
 
       <div className="border-t border-gray-800 pt-3 mt-3">
         {email && (
-          <p className="text-gray-500 text-xs px-2 mb-2 truncate" title={email}>
+          <p className="text-gray-500 text-xs px-2 mb-1 truncate" title={email}>
             {email}
           </p>
+        )}
+        {rol && (
+          <p className="text-gray-600 text-xs px-2 mb-2 capitalize">{rol}</p>
         )}
         <button
           onClick={cerrarSesion}
