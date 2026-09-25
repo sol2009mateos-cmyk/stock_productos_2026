@@ -43,6 +43,9 @@ export default function AgregarProductoModal() {
 
     setGuardando(true)
 
+        setGuardando(true)
+
+    const supabase = createClient()
     const { error } = await supabase.from('productos').insert({
           nombre,
       categoria,
