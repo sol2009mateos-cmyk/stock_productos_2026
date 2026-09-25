@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 
 type Config = {
   id: number
@@ -44,6 +44,7 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
 
     setGuardando(true)
 
+    const supabase = createClient()
     const { error } = await supabase
       .from('config')
             .update({
