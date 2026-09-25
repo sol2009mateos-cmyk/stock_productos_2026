@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 
 type Producto = {
   id: string
@@ -43,7 +43,8 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
 
     setGuardando(true)
 
-        const stockAnterior = producto.stock
+    const supabase = createClient()
+    const stockAnterior = producto.stock
 
     const { error } = await supabase
       .from('productos')
@@ -81,6 +82,7 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
     if (!confirm(`¿Seguro que querés eliminar "${producto.nombre}"?`)) return
 
     setGuardando(true)
+    const supabase = createClient()
     const { error } = await supabase.from('productos').delete().eq('id', producto.id)
     setGuardando(false)
 
