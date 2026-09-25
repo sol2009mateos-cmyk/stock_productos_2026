@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 import ReciboModal from '@/components/ReciboModal'
 import Favoritos, { ItemParaCarrito } from '@/components/Favoritos'
 import ListaProductosPOS from '@/components/ListaProductosPOS'
@@ -146,76 +146,34 @@ export default function POS({
       setErrorMsg('Elegí un método de pago completo.')
       return
     }
-    if (!config) {
-      setErrorMsg('No se pudo leer la configuración del negocio.')
-      return
-    }
 
     setProcesando(true)
 
-    const numeroRecibo = config.siguiente_numero_recibo
+    const supabase = createClient()
 
-    const { data: ventaCreada, error: errorVenta } = await supabase
-      .from('ventas')
-      .insert({
-        numero_recibo: numeroRecibo,
-        metodo_pago: datosPago.metodoPago,
-        marca_pago: datosPago.marcaPago,
-        cuotas: datosPago.cuotas,
-        subtotal,
-        iva,
-        total,
-      })
-      .select()
-      .single()
-
-    if (errorVenta || !ventaCreada) {
-      setErrorMsg(errorVenta?.message || 'Error al crear la venta.')
-      setProcesando(false)
-      return
-    }
-
-    const items = carrito.map((i) => ({
-      venta_id: ventaCreada.id,
+    const itemsParaFuncion = carrito.map((i) => ({
       producto_id: i.producto.id,
       cantidad: i.cantidad,
-      precio_unitario: i.producto.precio,
-      subtotal: i.producto.precio * i.cantidad,
     }))
 
-    const { error: errorItems } = await supabase.from('venta_items').insert(items)
+    const { data, error } = await supabase.rpc('registrar_venta', {
+      p_metodo_pago: datosPago.metodoPago,
+      p_marca_pago: datosPago.marcaPago,
+      p_cuotas: datosPago.cuotas,
+      p_items: itemsParaFuncion,
+    })
 
-    if (errorItems) {
-      setErrorMsg(errorItems.message)
-      setProcesando(false)
+    setProcesando(false)
+
+    if (error || !data || data.length === 0) {
+      setErrorMsg(error?.message || 'Error al registrar la venta.')
       return
     }
 
-        for (const i of carrito) {
-      const stockNuevo = i.producto.stock - i.cantidad
-
-      await supabase
-        .from('productos')
-        .update({ stock: stockNuevo })
-        .eq('id', i.producto.id)
-
-      await supabase.from('movimientos_stock').insert({
-        producto_id: i.producto.id,
-        cambio: -i.cantidad,
-        stock_anterior: i.producto.stock,
-        stock_nuevo: stockNuevo,
-        motivo: 'venta',
-        venta_id: ventaCreada.id,
-      })
-    }
-
-    await supabase
-      .from('config')
-      .update({ siguiente_numero_recibo: numeroRecibo + 1 })
-      .eq('id', 1)
+    const resultado = data[0]
 
     setReciboActivo({
-      numeroRecibo,
+      numeroRecibo: resultado.numero_recibo,
       fecha: new Date(),
       metodoPago: etiquetaMetodoPago(datosPago),
       items: carrito.map((i) => ({
@@ -231,7 +189,6 @@ export default function POS({
 
     setCarrito([])
     setDatosPago(null)
-    setProcesando(false)
     router.refresh()
   }
 
