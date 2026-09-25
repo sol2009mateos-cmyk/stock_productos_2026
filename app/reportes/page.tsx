@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import ReportesView from '@/components/ReportesView'
+import { obtenerRol } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ReportesPage() {
   const supabase = createClient()
+
   const { data: ventas } = await supabase
     .from('ventas')
     .select('*, venta_items(cantidad, precio_unitario, subtotal, producto_id, productos(nombre))')
@@ -16,5 +18,7 @@ export default async function ReportesPage() {
     .eq('id', 1)
     .single()
 
-  return <ReportesView ventas={ventas ?? []} config={config} />
+  const rol = await obtenerRol()
+
+  return <ReportesView ventas={ventas ?? []} config={config} rol={rol} />
 }
