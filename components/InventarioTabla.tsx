@@ -16,9 +16,11 @@ type Producto = {
 export default function InventarioTabla({
   productos,
   stockBajoLimite,
+  puedeEditar,
 }: {
   productos: Producto[]
   stockBajoLimite: number
+  puedeEditar: boolean
 }) {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todas')
   const [busqueda, setBusqueda] = useState('')
@@ -73,7 +75,7 @@ export default function InventarioTabla({
               <th className="pb-2">Código de barras</th>
               <th className="pb-2 text-right">Precio</th>
               <th className="pb-2 text-right">Stock</th>
-              <th className="pb-2 text-right">Acciones</th>
+              {puedeEditar && <th className="pb-2 text-right">Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -94,9 +96,11 @@ export default function InventarioTabla({
                       {p.stock}
                     </span>
                   </td>
-                  <td className="py-3 text-right">
-                    <EditarProductoModal producto={p} />
-                  </td>
+                  {puedeEditar && (
+                    <td className="py-3 text-right">
+                      <EditarProductoModal producto={p} />
+                    </td>
+                  )}
                 </tr>
               )
             })}
