@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AgregarEmpleadoModal() {
   const router = useRouter()
@@ -34,6 +34,7 @@ export default function AgregarEmpleadoModal() {
     setGuardando(true)
     setErrorMsg('')
 
+    const supabase = createClient()
     const { error } = await supabase.from('empleados').insert({
       nombre,
       apellido,
