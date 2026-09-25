@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import AgregarProductoModal from '@/components/AgregarProductoModal'
 import InventarioTabla from '@/components/InventarioTabla'
 import { formatearMoneda } from '@/lib/utils'
+import { obtenerRol } from '@/lib/roles'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +18,9 @@ export default async function Inventario() {
     .select('stock_bajo_limite')
     .eq('id', 1)
     .single()
+
+  const rol = await obtenerRol()
+  const puedeEditar = rol === 'admin' || rol === 'supervisor'
 
   if (error) {
     return <div className="text-red-400">Error al traer productos: {error.message}</div>
@@ -36,7 +40,7 @@ export default async function Inventario() {
             {listaProductos.length} productos en {categorias.length} categorías
           </p>
         </div>
-        <AgregarProductoModal />
+        {puedeEditar && <AgregarProductoModal />}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -56,7 +60,7 @@ export default async function Inventario() {
         </div>
       </div>
 
-      <InventarioTabla productos={listaProductos} stockBajoLimite={stockBajoLimite} />
+      <InventarioTabla productos={listaProductos} stockBajoLimite={stockBajoLimite} puedeEditar={puedeEditar} />
     </div>
   )
 }
