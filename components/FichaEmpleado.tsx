@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase/client'
 import EditarEmpleadoModal from '@/components/EditarEmpleadoModal'
 
 import AsistenciasEmpleado from '@/components/AsistenciasEmpleado'
@@ -54,6 +54,7 @@ export default function FichaEmpleado({
 
   async function asignarCategoria(categoria: string) {
     setGuardando(true)
+    const supabase = createClient()
     await supabase.from('producto_responsables').insert({
       empleado_id: empleado.id,
       categoria,
@@ -64,6 +65,7 @@ export default function FichaEmpleado({
 
   async function quitarCategoria(id: string) {
     setGuardando(true)
+    const supabase = createClient()
     await supabase.from('producto_responsables').delete().eq('id', id)
     setGuardando(false)
     router.refresh()
