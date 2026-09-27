@@ -45,9 +45,9 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
     setGuardando(true)
 
     const supabase = createClient()
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('config')
-            .update({
+      .update({
         nombre_negocio: nombreNegocio,
         cuit: cuit || null,
         direccion: direccion || null,
@@ -55,10 +55,17 @@ export default function ConfiguracionForm({ config }: { config: Config | null })
         stock_bajo_limite: stockBajoNum,
       })
       .eq('id', 1)
+      .select()
+
     setGuardando(false)
 
     if (error) {
       setErrorMsg(error.message)
+      return
+    }
+
+    if (!data || data.length === 0) {
+      setErrorMsg('No tenés permiso para modificar la configuración del negocio.')
       return
     }
 
