@@ -15,8 +15,9 @@ const links: { href: string; label: string; icon: string; roles: Rol[] }[] = [
   { href: '/historial', label: 'Historial de Stock', icon: '📜', roles: ['admin', 'supervisor'] },
   { href: '/empleados', label: 'Empleados', icon: '👥', roles: ['admin', 'supervisor'] },
   { href: '/configuracion', label: 'Configuración', icon: '⚙️', roles: ['admin'] },
-]
+    { href: '/usuarios', label: 'Usuarios', icon: '🔑', roles: ['admin'] },
   { href: '/usuarios', label: 'Usuarios', icon: '🔑', roles: ['admin'] },
+]
 
 export default function Sidebar() {
   const pathname = usePathname()
