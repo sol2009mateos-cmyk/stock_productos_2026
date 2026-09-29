@@ -57,21 +57,25 @@ export default function BearLoginForm() {
           <polygon points="54,70 66,70 60,76" fill="#000" />
 
           <g id="eyes">
-            <circle cx="42" cy="55" r="8" fill="#FFF" />
-            <motion.circle
-              cx={42 + (isPasswordFocused ? 0 : caretPosition * 0.15 - 2)}
-              cy={55 + (isPasswordFocused ? -15 : 0)}
-              r="4"
-              fill="#000"
-            />
+            {!isPasswordFocused && (
+              <>
+                <circle cx="42" cy="55" r="8" fill="#FFF" />
+                <motion.circle
+                  cx={42 + caretPosition * 0.15 - 2}
+                  cy={55}
+                  r="4"
+                  fill="#000"
+                />
 
-            <circle cx="78" cy="55" r="8" fill="#FFF" />
-            <motion.circle
-              cx={78 + (isPasswordFocused ? 0 : caretPosition * 0.15 - 2)}
-              cy={55 + (isPasswordFocused ? -15 : 0)}
-              r="4"
-              fill="#000"
-            />
+                <circle cx="78" cy="55" r="8" fill="#FFF" />
+                <motion.circle
+                  cx={78 + caretPosition * 0.15 - 2}
+                  cy={55}
+                  r="4"
+                  fill="#000"
+                />
+              </>
+            )}
           </g>
 
           <motion.path
