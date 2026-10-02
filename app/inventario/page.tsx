@@ -27,7 +27,11 @@ export default async function Inventario() {
   }
 
   const stockBajoLimite = config?.stock_bajo_limite ?? 15
-  const listaProductos = productos ?? []
+
+  // El costo solo viaja al navegador si el usuario puede editar (admin/supervisor).
+  // Para el cajero se pisa con null antes de pasarlo al componente.
+  const listaProductos = (productos ?? []).map((p) => (puedeEditar ? p : { ...p, costo: null }))
+
   const categorias = Array.from(new Set(listaProductos.map((p) => p.categoria).filter(Boolean)))
   const valorTotal = listaProductos.reduce((acc, p) => acc + p.precio * p.stock, 0)
 
