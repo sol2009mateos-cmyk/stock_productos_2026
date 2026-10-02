@@ -23,9 +23,15 @@ export default async function PuntoDeVentaPage() {
     )
     .order('id', { ascending: true })
 
+  // El POS no necesita el costo: se saca antes de mandar los productos al navegador.
+  const productosSinCosto = (productos ?? []).map((p) => {
+    const { costo: _costo, ...resto } = p
+    return resto
+  })
+
   return (
     <POS
-      productosIniciales={productos ?? []}
+      productosIniciales={productosSinCosto}
       config={config}
       favoritosIniciales={favoritos ?? []}
     />
