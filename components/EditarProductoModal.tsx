@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { formatearMoneda, calcularMargen } from '@/lib/utils'
 
 type Producto = {
   id: string
@@ -11,6 +12,7 @@ type Producto = {
   precio: number
   stock: number
   codigo_barras: string | null
+  costo: number | null
 }
 
 export default function EditarProductoModal({ producto }: { producto: Producto }) {
@@ -22,8 +24,17 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
   const [nombre, setNombre] = useState(producto.nombre)
   const [categoria, setCategoria] = useState(producto.categoria ?? '')
   const [precio, setPrecio] = useState(String(producto.precio))
+  const [costo, setCosto] = useState(
+    producto.costo !== null && producto.costo !== undefined ? String(producto.costo) : ''
+  )
   const [stock, setStock] = useState(String(producto.stock))
   const [codigoBarras, setCodigoBarras] = useState(producto.codigo_barras ?? '')
+
+  // Vista previa del margen mientras se escribe
+  const precioPrevio = parseFloat(precio)
+  const costoPrevio = parseFloat(costo)
+  const margenPrevio =
+    !isNaN(precioPrevio) && !isNaN(costoPrevio) ? calcularMargen(precioPrevio, costoPrevio) : null
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,6 +42,7 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
 
     const precioNum = parseFloat(precio)
     const stockNum = parseInt(stock, 10)
+    const costoNum = costo.trim() === '' ? null : parseFloat(costo)
 
     if (precioNum < 0) {
       setErrorMsg('El precio no puede ser negativo.')
@@ -38,6 +50,10 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
     }
     if (stockNum < 0) {
       setErrorMsg('El stock no puede ser negativo.')
+      return
+    }
+    if (costoNum !== null && (isNaN(costoNum) || costoNum < 0)) {
+      setErrorMsg('El costo no puede ser negativo.')
       return
     }
 
@@ -52,6 +68,7 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
         nombre,
         categoria,
         precio: precioNum,
+        costo: costoNum,
         stock: stockNum,
         codigo_barras: codigoBarras || null,
       })
@@ -137,7 +154,18 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-gray-400">Costo</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={costo}
+                    onChange={(e) => setCosto(e.target.value)}
+                    className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                  />
+                </div>
                 <div>
                   <label className="text-xs text-gray-400">Precio</label>
                   <input
@@ -160,6 +188,12 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
                   />
                 </div>
               </div>
+
+              {margenPrevio && (
+                <p className={`text-sm ${margenPrevio.ganancia >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  Margen: {formatearMoneda(margenPrevio.ganancia)} ({margenPrevio.porcentaje.toFixed(1)}%)
+                </p>
+              )}
 
               <div>
                 <label className="text-xs text-gray-400">Código de barras (opcional)</label>
