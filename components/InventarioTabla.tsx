@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import EditarProductoModal from '@/components/EditarProductoModal'
-import { formatearMoneda } from '@/lib/utils'
+import { formatearMoneda, calcularMargen } from '@/lib/utils'
 
 type Producto = {
   id: string
@@ -11,6 +11,7 @@ type Producto = {
   precio: number
   stock: number
   codigo_barras: string | null
+  costo: number | null
 }
 
 export default function InventarioTabla({
@@ -35,7 +36,7 @@ export default function InventarioTabla({
     return coincideCategoria && coincideBusqueda
   })
 
-   return (
+  return (
     <div>
       <input
         type="text"
@@ -73,20 +74,40 @@ export default function InventarioTabla({
               <th className="pb-2">Nombre</th>
               <th className="pb-2">Categoría</th>
               <th className="pb-2">Código de barras</th>
+              {puedeEditar && <th className="pb-2 text-right">Costo</th>}
               <th className="pb-2 text-right">Precio</th>
+              {puedeEditar && <th className="pb-2 text-right">Margen</th>}
               <th className="pb-2 text-right">Stock</th>
               {puedeEditar && <th className="pb-2 text-right">Acciones</th>}
             </tr>
           </thead>
           <tbody>
             {productosFiltrados.map((p) => {
-                          const bajo = p.stock < stockBajoLimite
+              const bajo = p.stock < stockBajoLimite
+              const margen = calcularMargen(p.precio, p.costo)
               return (
                 <tr key={p.id} className="border-b border-gray-800">
                   <td className="py-3 text-gray-200 font-medium">{p.nombre}</td>
                   <td className="py-3 text-gray-400">{p.categoria}</td>
                   <td className="py-3 text-gray-500">{p.codigo_barras}</td>
+                  {puedeEditar && (
+                    <td className="py-3 text-right text-gray-400">
+                      {p.costo !== null && p.costo !== undefined ? formatearMoneda(Number(p.costo)) : '—'}
+                    </td>
+                  )}
                   <td className="py-3 text-right text-gray-200">{formatearMoneda(p.precio)}</td>
+                  {puedeEditar && (
+                    <td className="py-3 text-right">
+                      {margen ? (
+                        <span className={margen.ganancia >= 0 ? 'text-green-400' : 'text-red-400'}>
+                          {formatearMoneda(margen.ganancia)}{' '}
+                          <span className="text-xs opacity-80">({margen.porcentaje.toFixed(1)}%)</span>
+                        </span>
+                      ) : (
+                        <span className="text-gray-600">—</span>
+                      )}
+                    </td>
+                  )}
                   <td className="py-3 text-right">
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${
