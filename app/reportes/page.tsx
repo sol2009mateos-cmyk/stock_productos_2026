@@ -9,7 +9,9 @@ export default async function ReportesPage() {
 
   const { data: ventas } = await supabase
     .from('ventas')
-    .select('*, venta_items(cantidad, precio_unitario, subtotal, producto_id, productos(nombre))')
+    .select(
+      '*, venta_items(cantidad, precio_unitario, subtotal, costo_unitario, producto_id, productos(nombre))'
+    )
     .order('fecha', { ascending: false })
 
   const { data: config } = await supabase
@@ -20,5 +22,19 @@ export default async function ReportesPage() {
 
   const rol = await obtenerRol()
 
-  return <ReportesView ventas={ventas ?? []} config={config} rol={rol} />
+  // El costo solo viaja al navegador para admin y supervisor.
+  // Para el cajero se saca de cada ítem antes de pasarlo a la vista.
+  const ventasParaVista = (ventas ?? []).map((v) =>
+    rol === 'cajero'
+      ? {
+          ...v,
+          venta_items: (v.venta_items ?? []).map((item) => {
+            const { costo_unitario: _costo, ...resto } = item
+            return resto
+          }),
+        }
+      : v
+  )
+
+  return <ReportesView ventas={ventasParaVista} config={config} rol={rol} />
 }
