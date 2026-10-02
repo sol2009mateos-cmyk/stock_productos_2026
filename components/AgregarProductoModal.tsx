@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { formatearMoneda, calcularMargen } from '@/lib/utils'
 
 export default function AgregarProductoModal() {
   const router = useRouter()
@@ -13,6 +14,7 @@ export default function AgregarProductoModal() {
   const [nombre, setNombre] = useState('')
   const [categoria, setCategoria] = useState('')
   const [precio, setPrecio] = useState('')
+  const [costo, setCosto] = useState('')
   const [stock, setStock] = useState('')
   const [codigoBarras, setCodigoBarras] = useState('')
 
@@ -20,17 +22,25 @@ export default function AgregarProductoModal() {
     setNombre('')
     setCategoria('')
     setPrecio('')
+    setCosto('')
     setStock('')
     setCodigoBarras('')
     setErrorMsg('')
   }
 
-   async function handleSubmit(e: React.FormEvent) {
+  // Vista previa del margen mientras se escribe
+  const precioPrevio = parseFloat(precio)
+  const costoPrevio = parseFloat(costo)
+  const margenPrevio =
+    !isNaN(precioPrevio) && !isNaN(costoPrevio) ? calcularMargen(precioPrevio, costoPrevio) : null
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErrorMsg('')
 
     const precioNum = parseFloat(precio)
     const stockNum = parseInt(stock, 10)
+    const costoNum = costo.trim() === '' ? null : parseFloat(costo)
 
     if (precioNum < 0) {
       setErrorMsg('El precio no puede ser negativo.')
@@ -40,14 +50,19 @@ export default function AgregarProductoModal() {
       setErrorMsg('El stock no puede ser negativo.')
       return
     }
+    if (costoNum !== null && (isNaN(costoNum) || costoNum < 0)) {
+      setErrorMsg('El costo no puede ser negativo.')
+      return
+    }
 
-        setGuardando(true)
+    setGuardando(true)
 
     const supabase = createClient()
     const { error } = await supabase.from('productos').insert({
-          nombre,
+      nombre,
       categoria,
       precio: precioNum,
+      costo: costoNum,
       stock: stockNum,
       codigo_barras: codigoBarras || null,
     })
@@ -106,7 +121,18 @@ export default function AgregarProductoModal() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-gray-400">Costo</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={costo}
+                    onChange={(e) => setCosto(e.target.value)}
+                    className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                  />
+                </div>
                 <div>
                   <label className="text-xs text-gray-400">Precio</label>
                   <input
@@ -129,6 +155,12 @@ export default function AgregarProductoModal() {
                   />
                 </div>
               </div>
+
+              {margenPrevio && (
+                <p className={`text-sm ${margenPrevio.ganancia >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  Margen: {formatearMoneda(margenPrevio.ganancia)} ({margenPrevio.porcentaje.toFixed(1)}%)
+                </p>
+              )}
 
               <div>
                 <label className="text-xs text-gray-400">Código de barras (opcional)</label>
