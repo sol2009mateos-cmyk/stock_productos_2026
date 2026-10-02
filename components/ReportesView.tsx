@@ -8,6 +8,7 @@ type VentaItem = {
   cantidad: number
   precio_unitario: number
   subtotal: number
+  costo_unitario?: number | null
   producto_id: string
   productos: { nombre: string } | null
 }
@@ -173,6 +174,33 @@ export default function ReportesView({
   const totalVentas = ventasFiltradas.length
   const montoTotal = ventasFiltradas.reduce((acc, v) => acc + Number(v.total), 0)
 
+  // Ganancia y margen: solo cuentan los ítems que tienen costo guardado.
+  // Se calcula sobre el subtotal neto (sin IVA).
+  const resumenMargen = useMemo(() => {
+    let ventaConCosto = 0
+    let ganancia = 0
+    let itemsSinCosto = 0
+
+    for (const v of ventasFiltradas) {
+      for (const item of v.venta_items ?? []) {
+        if (item.costo_unitario === null || item.costo_unitario === undefined) {
+          itemsSinCosto += 1
+          continue
+        }
+        const sub = Number(item.subtotal)
+        ventaConCosto += sub
+        ganancia += sub - Number(item.costo_unitario) * item.cantidad
+      }
+    }
+
+    return {
+      ganancia,
+      porcentaje: ventaConCosto > 0 ? (ganancia / ventaConCosto) * 100 : null,
+      itemsSinCosto,
+      hayDatos: ventaConCosto > 0,
+    }
+  }, [ventasFiltradas])
+
   const porMetodo = useMemo(() => {
     const mapa: Record<string, number> = {}
     for (const v of ventasFiltradas) {
@@ -192,15 +220,23 @@ export default function ReportesView({
   }, [ventasFiltradas])
 
   const topProductos = useMemo(() => {
-    const mapa: Record<string, { nombre: string; cantidad: number; total: number }> = {}
+    const mapa: Record<
+      string,
+      { nombre: string; cantidad: number; total: number; ganancia: number; conCosto: boolean }
+    > = {}
     for (const v of ventasFiltradas) {
       for (const item of v.venta_items ?? []) {
         const nombre = item.productos?.nombre ?? 'Producto eliminado'
         if (!mapa[item.producto_id]) {
-          mapa[item.producto_id] = { nombre, cantidad: 0, total: 0 }
+          mapa[item.producto_id] = { nombre, cantidad: 0, total: 0, ganancia: 0, conCosto: false }
         }
         mapa[item.producto_id].cantidad += item.cantidad
         mapa[item.producto_id].total += Number(item.subtotal)
+        if (item.costo_unitario !== null && item.costo_unitario !== undefined) {
+          mapa[item.producto_id].conCosto = true
+          mapa[item.producto_id].ganancia +=
+            Number(item.subtotal) - Number(item.costo_unitario) * item.cantidad
+        }
       }
     }
     return Object.values(mapa)
@@ -268,7 +304,7 @@ export default function ReportesView({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-2">
         <div className="bg-[#161922] border-t-4 border-blue-500 rounded-lg p-4">
           <p className="text-gray-400 text-sm">🧾 Cantidad de ventas</p>
           <p className="text-3xl font-bold text-white mt-1">{totalVentas}</p>
@@ -277,7 +313,35 @@ export default function ReportesView({
           <p className="text-gray-400 text-sm">💰 Monto total</p>
           <p className="text-3xl font-bold text-green-400 mt-1">{formatearMoneda(montoTotal)}</p>
         </div>
+        <div className="bg-[#161922] border-t-4 border-emerald-500 rounded-lg p-4">
+          <p className="text-gray-400 text-sm">📈 Ganancia (sin IVA)</p>
+          <p
+            className={`text-3xl font-bold mt-1 ${
+              !resumenMargen.hayDatos
+                ? 'text-gray-500'
+                : resumenMargen.ganancia >= 0
+                ? 'text-emerald-400'
+                : 'text-red-400'
+            }`}
+          >
+            {resumenMargen.hayDatos ? formatearMoneda(resumenMargen.ganancia) : '—'}
+          </p>
+        </div>
+        <div className="bg-[#161922] border-t-4 border-purple-500 rounded-lg p-4">
+          <p className="text-gray-400 text-sm">📊 Margen</p>
+          <p className="text-3xl font-bold text-purple-300 mt-1">
+            {resumenMargen.porcentaje !== null ? `${resumenMargen.porcentaje.toFixed(1)}%` : '—'}
+          </p>
+        </div>
       </div>
+
+      <p className="text-gray-500 text-xs mb-6">
+        {resumenMargen.hayDatos
+          ? resumenMargen.itemsSinCosto > 0
+            ? `${resumenMargen.itemsSinCosto} ítems vendidos sin costo cargado no entran en la ganancia ni en el margen.`
+            : 'Todas las ventas del período tienen costo cargado.'
+          : 'Todavía no hay ventas con costo cargado en este período. Cargá el costo de los productos en Inventario: el margen se calcula desde las ventas nuevas.'}
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-[#161922] rounded-lg p-4">
@@ -320,7 +384,15 @@ export default function ReportesView({
             {topProductos.map((p, i) => (
               <div key={i} className="flex justify-between text-sm border-b border-gray-800 pb-2">
                 <span className="text-gray-300">{p.nombre}</span>
-                <span className="text-gray-400">{p.cantidad} u. — {formatearMoneda(p.total)}</span>
+                <span className="text-gray-400">
+                  {p.cantidad} u. — {formatearMoneda(p.total)}
+                  {p.conCosto && (
+                    <span className={p.ganancia >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                      {' '}
+                      · ganancia {formatearMoneda(p.ganancia)}
+                    </span>
+                  )}
+                </span>
               </div>
             ))}
           </div>
