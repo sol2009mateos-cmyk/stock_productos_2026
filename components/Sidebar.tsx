@@ -13,6 +13,7 @@ const links: { href: string; label: string; icon: string; roles: Rol[] }[] = [
   { href: '/punto-de-venta', label: 'Punto de Venta', icon: '🛒', roles: ['admin', 'supervisor', 'cajero'] },
   { href: '/reportes', label: 'Reportes', icon: '📈', roles: ['admin', 'supervisor', 'cajero'] },
   { href: '/historial', label: 'Historial de Stock', icon: '📜', roles: ['admin', 'supervisor'] },
+  { href: '/proveedores', label: 'Proveedores', icon: '🚚', roles: ['admin', 'supervisor'] },
   { href: '/empleados', label: 'Empleados', icon: '👥', roles: ['admin', 'supervisor'] },
   { href: '/configuracion', label: 'Configuración', icon: '⚙️', roles: ['admin'] },
   { href: '/usuarios', label: 'Usuarios', icon: '🔑', roles: ['admin'] },
