@@ -14,3 +14,18 @@ export function calcularMargen(precio: number, costo: number | null | undefined)
   const porcentaje = Number(precio) > 0 ? (ganancia / Number(precio)) * 100 : 0
   return { ganancia, porcentaje }
 }
+
+// Vencimientos: se guardan como fecha "AAAA-MM-01" y se muestran como "MM/AAAA".
+// Sin vencimiento = null.
+export function formatearVencimiento(venc: string | null | undefined) {
+  if (!venc) return 'Sin vencimiento'
+  return `${venc.slice(5, 7)}/${venc.slice(0, 4)}`
+}
+
+// Un lote está vencido cuando su mes ya pasó (durante el mes de vencimiento todavía vale).
+export function estaVencido(venc: string | null | undefined) {
+  if (!venc) return false
+  const ahora = new Date()
+  const mesActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`
+  return venc.slice(0, 7) < mesActual
+}
