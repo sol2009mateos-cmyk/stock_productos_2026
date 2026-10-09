@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import EditarProductoModal from '@/components/EditarProductoModal'
-import LotesModal, { Lote } from '@/components/LotesModal'
+import LotesModal, { Lote, ProveedorLote } from '@/components/LotesModal'
 import { formatearMoneda, calcularMargen, formatearVencimiento, estaVencido } from '@/lib/utils'
 
 type Producto = {
@@ -20,10 +20,12 @@ export default function InventarioTabla({
   productos,
   stockBajoLimite,
   puedeEditar,
+  proveedores,
 }: {
   productos: Producto[]
   stockBajoLimite: number
   puedeEditar: boolean
+  proveedores: ProveedorLote[]
 }) {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Todas')
   const [busqueda, setBusqueda] = useState('')
@@ -138,7 +140,10 @@ export default function InventarioTabla({
                                 key={l.id}
                                 className={`text-xs ${estaVencido(l.vencimiento) ? 'text-red-400 font-medium' : 'text-gray-400'}`}
                               >
-                                {l.vencimiento ? formatearVencimiento(l.vencimiento) : 'Sin venc.'} · {l.cantidad} u.
+                                {l.vencimiento ? formatearVencimiento(l.vencimiento) : 'Sin venc.'}
+                                {l.numero_lote ? ` · L ${l.numero_lote}` : ''}
+                                {' · '}{l.cantidad} u.
+                                {l.proveedor_id ? ` · ${proveedores.find((x) => x.id === l.proveedor_id)?.nombre ?? ''}` : ''}
                               </span>
                             ))}
                         </div>
@@ -148,11 +153,11 @@ export default function InventarioTabla({
                   {puedeEditar && (
                     <td className="py-3 text-right">
                       <div className="flex flex-col items-end gap-1">
-       <LotesModal
-  producto={{ id: p.id, nombre: p.nombre, stock: p.stock }}
-  lotes={p.lotes}
-  proveedores={proveedores}
-/>
+                        <LotesModal
+                          producto={{ id: p.id, nombre: p.nombre, stock: p.stock }}
+                          lotes={p.lotes}
+                          proveedores={proveedores}
+                        />
                         <EditarProductoModal producto={p} />
                       </div>
                     </td>
