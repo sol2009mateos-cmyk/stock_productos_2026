@@ -26,11 +26,22 @@ export default async function Inventario() {
     return <div className="text-red-400">Error al traer productos: {error.message}</div>
   }
 
+  // Lotes (stock separado por vencimiento). Solo los ven admin y supervisor.
+  const { data: lotes } = puedeEditar
+    ? await supabase
+        .from('lotes')
+        .select('id, producto_id, vencimiento, cantidad')
+        .order('vencimiento', { ascending: true, nullsFirst: false })
+    : { data: [] as { id: string; producto_id: string; vencimiento: string | null; cantidad: number }[] }
+
   const stockBajoLimite = config?.stock_bajo_limite ?? 15
 
   // El costo solo viaja al navegador si el usuario puede editar (admin/supervisor).
   // Para el cajero se pisa con null antes de pasarlo al componente.
-  const listaProductos = (productos ?? []).map((p) => (puedeEditar ? p : { ...p, costo: null }))
+  const listaProductos = (productos ?? []).map((p) => ({
+    ...(puedeEditar ? p : { ...p, costo: null }),
+    lotes: (lotes ?? []).filter((l) => l.producto_id === p.id),
+  }))
 
   const categorias = Array.from(new Set(listaProductos.map((p) => p.categoria).filter(Boolean)))
   const valorTotal = listaProductos.reduce((acc, p) => acc + p.precio * p.stock, 0)
