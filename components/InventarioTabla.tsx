@@ -148,7 +148,11 @@ export default function InventarioTabla({
                   {puedeEditar && (
                     <td className="py-3 text-right">
                       <div className="flex flex-col items-end gap-1">
-                        <LotesModal producto={{ id: p.id, nombre: p.nombre, stock: p.stock }} lotes={p.lotes} />
+       <LotesModal
+  producto={{ id: p.id, nombre: p.nombre, stock: p.stock }}
+  lotes={p.lotes}
+  proveedores={proveedores}
+/>
                         <EditarProductoModal producto={p} />
                       </div>
                     </td>
