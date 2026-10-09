@@ -27,7 +27,6 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
   const [costo, setCosto] = useState(
     producto.costo !== null && producto.costo !== undefined ? String(producto.costo) : ''
   )
-  const [stock, setStock] = useState(String(producto.stock))
   const [codigoBarras, setCodigoBarras] = useState(producto.codigo_barras ?? '')
 
   // Vista previa del margen mientras se escribe
@@ -41,15 +40,10 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
     setErrorMsg('')
 
     const precioNum = parseFloat(precio)
-    const stockNum = parseInt(stock, 10)
     const costoNum = costo.trim() === '' ? null : parseFloat(costo)
 
     if (precioNum < 0) {
       setErrorMsg('El precio no puede ser negativo.')
-      return
-    }
-    if (stockNum < 0) {
-      setErrorMsg('El stock no puede ser negativo.')
       return
     }
     if (costoNum !== null && (isNaN(costoNum) || costoNum < 0)) {
@@ -60,8 +54,6 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
     setGuardando(true)
 
     const supabase = createClient()
-    const stockAnterior = producto.stock
-
     const { error } = await supabase
       .from('productos')
       .update({
@@ -69,20 +61,9 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
         categoria,
         precio: precioNum,
         costo: costoNum,
-        stock: stockNum,
         codigo_barras: codigoBarras || null,
       })
       .eq('id', producto.id)
-
-    if (!error && stockNum !== stockAnterior) {
-      await supabase.from('movimientos_stock').insert({
-        producto_id: producto.id,
-        cambio: stockNum - stockAnterior,
-        stock_anterior: stockAnterior,
-        stock_nuevo: stockNum,
-        motivo: 'ajuste_manual',
-      })
-    }
 
     setGuardando(false)
 
@@ -154,7 +135,7 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-gray-400">Costo</label>
                   <input
@@ -177,16 +158,6 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
                     className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
                   />
                 </div>
-                <div>
-                  <label className="text-xs text-gray-400">Stock</label>
-                  <input
-                    required
-                    type="number"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
-                    className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-                  />
-                </div>
               </div>
 
               {margenPrevio && (
@@ -194,6 +165,10 @@ export default function EditarProductoModal({ producto }: { producto: Producto }
                   Margen: {formatearMoneda(margenPrevio.ganancia)} ({margenPrevio.porcentaje.toFixed(1)}%)
                 </p>
               )}
+
+              <p className="text-gray-500 text-xs">
+                Stock actual: {producto.stock}. Para cambiarlo usá el botón 📅 Lotes, que lo separa por vencimiento.
+              </p>
 
               <div>
                 <label className="text-xs text-gray-400">Código de barras (opcional)</label>
