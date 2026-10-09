@@ -15,7 +15,6 @@ export default function AgregarProductoModal() {
   const [categoria, setCategoria] = useState('')
   const [precio, setPrecio] = useState('')
   const [costo, setCosto] = useState('')
-  const [stock, setStock] = useState('')
   const [codigoBarras, setCodigoBarras] = useState('')
 
   function limpiarFormulario() {
@@ -23,7 +22,6 @@ export default function AgregarProductoModal() {
     setCategoria('')
     setPrecio('')
     setCosto('')
-    setStock('')
     setCodigoBarras('')
     setErrorMsg('')
   }
@@ -39,15 +37,10 @@ export default function AgregarProductoModal() {
     setErrorMsg('')
 
     const precioNum = parseFloat(precio)
-    const stockNum = parseInt(stock, 10)
     const costoNum = costo.trim() === '' ? null : parseFloat(costo)
 
     if (precioNum < 0) {
       setErrorMsg('El precio no puede ser negativo.')
-      return
-    }
-    if (stockNum < 0) {
-      setErrorMsg('El stock no puede ser negativo.')
       return
     }
     if (costoNum !== null && (isNaN(costoNum) || costoNum < 0)) {
@@ -63,7 +56,7 @@ export default function AgregarProductoModal() {
       categoria,
       precio: precioNum,
       costo: costoNum,
-      stock: stockNum,
+      stock: 0,
       codigo_barras: codigoBarras || null,
     })
 
@@ -121,7 +114,7 @@ export default function AgregarProductoModal() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-gray-400">Costo</label>
                   <input
@@ -144,16 +137,6 @@ export default function AgregarProductoModal() {
                     className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
                   />
                 </div>
-                <div>
-                  <label className="text-xs text-gray-400">Stock</label>
-                  <input
-                    required
-                    type="number"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
-                    className="w-full mt-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-                  />
-                </div>
               </div>
 
               {margenPrevio && (
@@ -161,6 +144,10 @@ export default function AgregarProductoModal() {
                   Margen: {formatearMoneda(margenPrevio.ganancia)} ({margenPrevio.porcentaje.toFixed(1)}%)
                 </p>
               )}
+
+              <p className="text-gray-500 text-xs">
+                El stock se carga después, con el botón 📅 Lotes, indicando el vencimiento de cada partida.
+              </p>
 
               <div>
                 <label className="text-xs text-gray-400">Código de barras (opcional)</label>
