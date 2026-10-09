@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import EditarProductoModal from '@/components/EditarProductoModal'
-import { formatearMoneda, calcularMargen } from '@/lib/utils'
+import LotesModal, { Lote } from '@/components/LotesModal'
+import { formatearMoneda, calcularMargen, formatearVencimiento, estaVencido } from '@/lib/utils'
 
 type Producto = {
   id: string
@@ -12,6 +13,7 @@ type Producto = {
   stock: number
   codigo_barras: string | null
   costo: number | null
+  lotes: Lote[]
 }
 
 export default function InventarioTabla({
@@ -78,6 +80,7 @@ export default function InventarioTabla({
               <th className="pb-2 text-right">Precio</th>
               {puedeEditar && <th className="pb-2 text-right">Margen</th>}
               <th className="pb-2 text-right">Stock</th>
+              {puedeEditar && <th className="pb-2">Vencimientos</th>}
               {puedeEditar && <th className="pb-2 text-right">Acciones</th>}
             </tr>
           </thead>
@@ -118,8 +121,36 @@ export default function InventarioTabla({
                     </span>
                   </td>
                   {puedeEditar && (
+                    <td className="py-3">
+                      {p.lotes.length === 0 ? (
+                        <span className="text-gray-600">—</span>
+                      ) : (
+                        <div className="flex flex-col gap-1">
+                          {[...p.lotes]
+                            .sort((a, b) => {
+                              if (a.vencimiento === b.vencimiento) return 0
+                              if (a.vencimiento === null) return 1
+                              if (b.vencimiento === null) return -1
+                              return a.vencimiento < b.vencimiento ? -1 : 1
+                            })
+                            .map((l) => (
+                              <span
+                                key={l.id}
+                                className={`text-xs ${estaVencido(l.vencimiento) ? 'text-red-400 font-medium' : 'text-gray-400'}`}
+                              >
+                                {l.vencimiento ? formatearVencimiento(l.vencimiento) : 'Sin venc.'} · {l.cantidad} u.
+                              </span>
+                            ))}
+                        </div>
+                      )}
+                    </td>
+                  )}
+                  {puedeEditar && (
                     <td className="py-3 text-right">
-                      <EditarProductoModal producto={p} />
+                      <div className="flex flex-col items-end gap-1">
+                        <LotesModal producto={{ id: p.id, nombre: p.nombre, stock: p.stock }} lotes={p.lotes} />
+                        <EditarProductoModal producto={p} />
+                      </div>
                     </td>
                   )}
                 </tr>
