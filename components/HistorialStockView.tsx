@@ -8,7 +8,7 @@ type Movimiento = {
   cambio: number
   stock_anterior: number
   stock_nuevo: number
-  motivo: 'venta' | 'ajuste_manual'
+  motivo: 'venta' | 'ajuste_manual' | 'compra'
   creado_en: string
   productos: { nombre: string } | null
 }
@@ -19,7 +19,9 @@ type Producto = {
 }
 
 function etiquetaMotivo(motivo: string) {
-  return motivo === 'venta' ? '🛒 Venta' : '✏️ Ajuste manual'
+  if (motivo === 'venta') return '🛒 Venta'
+  if (motivo === 'compra') return '📥 Compra'
+  return '✏️ Ajuste manual'
 }
 
 export default function HistorialStockView({
@@ -95,4 +97,5 @@ export default function HistorialStockView({
       </div>
     </div>
   )
+}
 }
