@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import CatalogoProveedorModal, { ItemCatalogo, ProductoInventario } from '@/components/CatalogoProveedorModal'
 
 type Proveedor = {
   id: string
@@ -15,9 +16,13 @@ type Proveedor = {
 export default function ProveedoresView({
   proveedores,
   puedeEliminar,
+  catalogo,
+  productos,
 }: {
   proveedores: Proveedor[]
   puedeEliminar: boolean
+  catalogo: ItemCatalogo[]
+  productos: ProductoInventario[]
 }) {
   const router = useRouter()
   const [busqueda, setBusqueda] = useState('')
@@ -143,12 +148,19 @@ export default function ProveedoresView({
                 <td className="py-3 text-gray-400">{p.email ?? '—'}</td>
                 <td className="py-3 text-gray-500">{p.notas ?? ''}</td>
                 <td className="py-3 text-right">
-                  <button
-                    onClick={() => abrirEditar(p)}
-                    className="text-blue-400 hover:text-blue-300 text-xs font-medium"
-                  >
-                    ✏️ Editar
-                  </button>
+                  <div className="flex flex-col items-end gap-1">
+                    <CatalogoProveedorModal
+                      proveedor={{ id: p.id, nombre: p.nombre }}
+                      items={catalogo.filter((c) => c.proveedor_id === p.id)}
+                      productos={productos}
+                    />
+                    <button
+                      onClick={() => abrirEditar(p)}
+                      className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                    >
+                      ✏️ Editar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
