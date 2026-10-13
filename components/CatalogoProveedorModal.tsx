@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatearMoneda } from '@/lib/utils'
+import ImportarCatalogoModal from '@/components/ImportarCatalogoModal'
 
 export type ItemCatalogo = {
   id: string
@@ -176,16 +177,20 @@ export default function CatalogoProveedorModal({
             <p className="text-gray-500 text-xs mb-4">
               Lo que vende este proveedor y a qué precio (sin IVA). El nº de lote y el vencimiento no van acá:
               cambian en cada entrega y se cargan al comprar. Vinculá cada ítem con un producto de tu inventario
-              para poder comparar precios entre proveedores.
+              para poder comparar precios entre proveedores. Cuando confirmás una compra con este proveedor, el
+              precio de ese producto se actualiza solo.
             </p>
 
-            <input
-              type="text"
-              placeholder="🔍 Buscar en el catálogo..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 mb-3 text-white text-sm focus:outline-none focus:border-blue-500"
-            />
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                placeholder="🔍 Buscar en el catálogo..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="flex-1 bg-[#0f1117] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              />
+              <ImportarCatalogoModal proveedor={proveedor} />
+            </div>
 
             {filtrados.length === 0 ? (
               <p className="text-gray-500 text-sm text-center py-4">
