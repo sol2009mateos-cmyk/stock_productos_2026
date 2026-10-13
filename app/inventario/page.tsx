@@ -87,8 +87,5 @@ export default async function Inventario() {
         proveedores={proveedores ?? []}
       />
     </div>
-      )
-   
-
-}
+  )
 }
