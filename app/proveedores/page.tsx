@@ -21,5 +21,22 @@ export default async function ProveedoresPage() {
     return <div className="text-red-400">Error al traer proveedores: {error.message}</div>
   }
 
-  return <ProveedoresView proveedores={proveedores ?? []} puedeEliminar={rol === 'admin'} />
+  const { data: catalogo } = await supabase
+    .from('proveedor_productos')
+    .select('id, proveedor_id, nombre, codigo, precio, precio_actualizado, producto_id')
+    .order('nombre', { ascending: true })
+
+  const { data: productos } = await supabase
+    .from('productos')
+    .select('id, nombre')
+    .order('nombre', { ascending: true })
+
+  return (
+    <ProveedoresView
+      proveedores={proveedores ?? []}
+      puedeEliminar={rol === 'admin'}
+      catalogo={catalogo ?? []}
+      productos={productos ?? []}
+    />
+  )
 }
