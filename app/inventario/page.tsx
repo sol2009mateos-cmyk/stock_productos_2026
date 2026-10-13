@@ -3,6 +3,7 @@ import AgregarProductoModal from '@/components/AgregarProductoModal'
 import InventarioTabla from '@/components/InventarioTabla'
 import { formatearMoneda } from '@/lib/utils'
 import { obtenerRol } from '@/lib/roles'
+import type { Lote } from '@/components/LotesModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,13 +27,17 @@ export default async function Inventario() {
     return <div className="text-red-400">Error al traer productos: {error.message}</div>
   }
 
-  // Lotes (stock separado por vencimiento). Solo los ven admin y supervisor.
+  // Lotes (stock separado por vencimiento, nº de lote y proveedor). Solo los ven admin y supervisor.
   const { data: lotes } = puedeEditar
     ? await supabase
         .from('lotes')
-        .select('id, producto_id, vencimiento, cantidad')
+        .select('id, producto_id, vencimiento, cantidad, numero_lote, proveedor_id, costo')
         .order('vencimiento', { ascending: true, nullsFirst: false })
-    : { data: [] as { id: string; producto_id: string; vencimiento: string | null; cantidad: number }[] }
+    : { data: [] as Lote[] }
+
+  const { data: proveedores } = puedeEditar
+    ? await supabase.from('proveedores').select('id, nombre').order('nombre', { ascending: true })
+    : { data: [] as { id: string; nombre: string }[] }
 
   const stockBajoLimite = config?.stock_bajo_limite ?? 15
 
@@ -75,7 +80,15 @@ export default async function Inventario() {
         </div>
       </div>
 
-      <InventarioTabla productos={listaProductos} stockBajoLimite={stockBajoLimite} puedeEditar={puedeEditar} />
+      <InventarioTabla
+        productos={listaProductos}
+        stockBajoLimite={stockBajoLimite}
+        puedeEditar={puedeEditar}
+        proveedores={proveedores ?? []}
+      />
     </div>
-  )
+      )
+   
+
+}
 }
